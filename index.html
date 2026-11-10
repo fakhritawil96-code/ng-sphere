@@ -115,6 +115,7 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 .note{color:var(--muted);text-align:center;padding-block:30px}
 .moreWrap{display:flex;justify-content:center;padding-bottom:48px}
 .grid{padding-bottom:28px}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -143,11 +144,11 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 <main class="wrap">
   <div class="tools">
     <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="ابحثي بكود القطعة أو اللون، مثل 765526 أو أسود" autocomplete="off"></label>
+      <input id="q" type="search" placeholder="ابحثي بالكود أو الوصف، مثل: فستان أحمر، طقم دانتيل، 765526" autocomplete="off"></label>
   </div>
   <div class="meta"><span><b id="shown">…</b> قطعة</span><span>آخر تحديث: <span id="updated">…</span></span></div>
   <div class="grid" id="grid"></div>
-  <p class="note" id="empty" hidden>ما في قطع بهالبحث. جرّبي كود ثاني أو اختاري قسم.</p>
+  <p class="note" id="empty" hidden>ما في قطع بهالبحث. جرّبي كلمة ثانية، مثل «فستان أحمر» أو «طقم دانتيل»، أو اختاري قسم.</p>
   <div class="moreWrap"><button class="btn" id="moreBtn" hidden>عرض المزيد</button></div>
 </main>
 
@@ -220,9 +221,21 @@ function card(p){
       <a class="order" href="${waLink(p)}" target="_blank" rel="noopener">${waIcon}اطلبي على واتساب</a>
     </article>`;
 }
+const norm = s => String(s || "").toLowerCase()
+  .replace(/[ً-ْـ]/g, "")
+  .replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/ؤ/g, "و").replace(/ئ/g, "ي");
+const SYN = {"فساتين":"فستان","فستان":"فستان","جاكيتات":"جاكيت","جاكيتات":"جاكيت","بليزرات":"بليزر","بناطيل":"بنطلون","بنطلونات":"بنطلون","بنطال":"بنطلون","تنانير":"تنوره","اطقم":"طقم","بلوزات":"بلوزه","قمصان":"قميص","عبايات":"عبايه","قفاطين":"قفطان","معاطف":"معطف","سهره":"سهره","احمر":"احمر","حمرا":"احمر","حمراء":"احمر","اسود":"اسود","سودا":"اسود","سوداء":"اسود","ابيض":"ابيض","بيضا":"ابيض","بيضاء":"ابيض","زهري":"زهري","وردي":"زهري","بينك":"زهري","اخضر":"اخضر","خضرا":"اخضر","ازرق":"ازرق","زرقا":"ازرق","كحلي":"كحلي","بيج":"بيج","بني":"بني","ذهبي":"ذهبي","فضي":"فضي","تريكو":"تريكو","دانتيل":"دانتيل","ترتر":"ترتر","طويل":"ماكسي","طويله":"ماكسي","قصير":"ميني","قصيره":"ميني"};
+const stem = w => SYN[w] || w.replace(/^ال(?=..)/, "");
 function filter(){
-  const qq = q.trim().toUpperCase().replace(/^NG-?/, "");
-  list = P.filter(p => (cur === "all" || p.cat === cur) && (!qq || p.code.includes(qq) || p.name.includes(q.trim()) || p.color.includes(q.trim())));
+  const raw = q.trim();
+  const words = norm(raw).replace(/^ng-?/, "").split(/[\s,،]+/).filter(Boolean).map(stem);
+  const catName = Object.fromEntries(CATS);
+  list = P.filter(p => {
+    if (cur !== "all" && p.cat !== cur) return false;
+    if (!words.length) return true;
+    if (!p._h) p._h = norm(p.name + " " + p.color + " " + (catName[p.cat] || "") + " " + p.code);
+    return words.every(w => p._h.includes(w));
+  });
   shownN = 0;
   document.getElementById("grid").innerHTML = "";
   document.getElementById("shown").textContent = list.length.toLocaleString("en");
@@ -277,7 +290,7 @@ document.getElementById("grid").addEventListener("click", e => {
 document.getElementById("lbx").onclick = () => lb.close();
 lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
 
-fetch("products.json?v=1794313771").then(r => r.json()).then(d => {
+fetch("products.json?v=1794315001").then(r => r.json()).then(d => {
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h)})).filter(p => p.imgs.length);
   P.forEach((p, i) => p.i = i);
   document.getElementById("updated").textContent = d.updated;
