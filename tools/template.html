@@ -422,6 +422,7 @@ document.getElementById("lbimg").addEventListener("touchend", e => { if (tx === 
 lb.addEventListener("keydown", e => { if (e.key === "ArrowLeft") show(gi + 1); if (e.key === "ArrowRight") show(gi - 1); });
 let curP = null;
 const SIZES = ["S","M","L","XL","XXL","فري سايز"];
+const MAX_CELL = 50, MAX_ORDER = 500;
 const SZL = s => s === "فري سايز" ? "Free" : s;
 function openItem(p){
   curP = p;
@@ -436,7 +437,7 @@ function openItem(p){
   const qOf = (name, s) => { const l = c.lines.find(l => l.color === name); return l && l.q[s] ? l.q[s] : ""; };
   document.getElementById("qtable").innerHTML = `<table><thead><tr>${p.colors.length ? `<th class="c">اللون</th>` : ""}${SIZES.map(s => `<th>${SZL(s)}</th>`).join("")}</tr></thead><tbody>${
     rows.map((r, ri) => `<tr data-color="${esc(r.name)}" data-hex="${esc(r.hex)}">${p.colors.length ? `<td class="c"><button type="button" data-cimg="${esc(r.img)}" title="اعرض اللون"><span class="sw" style="background-color:${esc(r.hex)}${r.img ? `;background-image:url('${IMG}${esc(r.img)}_220x220.jpg')` : ""}"></span>${esc(r.name)}</button></td>` : ""}${
-      SIZES.map(s => `<td><input type="number" inputmode="numeric" min="0" step="1" data-size="${s}" value="${qOf(r.name, s)}" placeholder="0" aria-label="${esc(r.name)} ${s}"></td>`).join("")}</tr>`).join("")}</tbody></table>`;
+      SIZES.map(s => `<td><input type="number" inputmode="numeric" min="0" max="${MAX_CELL}" step="1" data-size="${s}" value="${qOf(r.name, s)}" placeholder="0" aria-label="${esc(r.name)} ${s}"></td>`).join("")}</tr>`).join("")}</tbody></table>`;
   document.getElementById("lbnote").value = c.note || "";
   document.getElementById("lbin").hidden = !CART[p.code];
   document.getElementById("lbremove").hidden = !CART[p.code];
@@ -445,6 +446,12 @@ function openItem(p){
   track(p.code, "v");
   if (!lb.open) lb.showModal();
 }
+document.getElementById("qtable").addEventListener("input", e => {
+  const inp = e.target; if (!inp.dataset || !inp.dataset.size) return;
+  const v = parseInt(inp.value, 10), h = document.getElementById("lbhint");
+  if (v > MAX_CELL) { inp.value = MAX_CELL; h.textContent = `الحد الأقصى ${MAX_CELL} قطعة من كل لون ومقاس. للكميات الأكبر احكينا على واتساب.`; h.hidden = false; }
+  else if (v < 0) inp.value = "";
+});
 document.getElementById("qtable").addEventListener("click", e => {
   const b = e.target.closest("[data-cimg]"); if (!b || !b.dataset.cimg) return;
   const u = IMG + b.dataset.cimg; const k = gal.indexOf(u);
@@ -458,11 +465,11 @@ document.getElementById("lbadd").onclick = () => {
   const lines = [];
   document.querySelectorAll("#qtable tbody tr").forEach(tr => {
     const q = {};
-    tr.querySelectorAll("input").forEach(inp => { const v = parseInt(inp.value, 10); if (v > 0) q[inp.dataset.size] = v; });
+    tr.querySelectorAll("input").forEach(inp => { const v = Math.min(MAX_CELL, parseInt(inp.value, 10) || 0); if (v > 0) q[inp.dataset.size] = v; });
     if (Object.keys(q).length) lines.push({color: tr.dataset.color || "", hex: tr.dataset.hex || "", q});
   });
   const note = document.getElementById("lbnote").value.trim();
-  if (!lines.length) { document.getElementById("lbhint").hidden = false; return; }
+  if (!lines.length) { const h = document.getElementById("lbhint"); h.textContent = "حدد الكمية من مقاس واحد على الأقل."; h.hidden = false; return; }
   CART[curP.code] = {lines, note, name: label(curP), img: curP.imgs[0]};
   track(curP.code, "a");
   saveCart(); refreshCard(curP.code); lb.close();
@@ -542,6 +549,8 @@ document.getElementById("submitOrder").onclick = async () => {
   const hint = document.getElementById("formHint");
   const digits = phone.replace(/\D/g, "");
   if (!shop || digits.length < 9) { hint.textContent = !shop ? "اكتب اسم المحل." : "اكتب رقم واتساب المحل حتى نقدر نرد عليك."; hint.hidden = false; return; }
+  const total = Object.values(CART).reduce((a, c) => a + pieces(c), 0);
+  if (total > MAX_ORDER) { hint.textContent = `الطلب فيه ${total} قطعة، والحد من الموقع ${MAX_ORDER} قطعة. خفّف الكمية أو احكينا على واتساب للطلبات الكبيرة.`; hint.hidden = false; return; }
   hint.hidden = true;
   const id = newId();
   const order = {id, shop, phone, city: document.getElementById("city").value.trim(), notes: document.getElementById("onote").value.trim(),
