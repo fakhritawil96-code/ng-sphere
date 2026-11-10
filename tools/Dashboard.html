@@ -44,7 +44,7 @@ header{border-bottom:1px solid var(--line);background:var(--paper)}
 .hd-r{display:flex;align-items:center;gap:10px}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:16px;flex-wrap:wrap}
 .brand{display:flex;align-items:baseline;gap:12px}
-.brand .mono{font:400 34px/1 var(--serif);letter-spacing:-.03em;direction:ltr}
+.brand .mono{font:400 34px/1 var(--serif);letter-spacing:-.03em;direction:ltr;unicode-bidi:isolate}
 .brand .t{font-weight:500;font-size:16px}
 .brand .t small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:transparent;border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500;font-size:14px;text-decoration:none}
@@ -73,9 +73,22 @@ select.f{background:var(--paper);border:1px solid var(--line);border-radius:999p
 .count{color:var(--muted);font-size:13px;margin-inline-start:auto}
 
 /* list */
-.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;background:var(--paper);margin-bottom:40px;overflow:hidden}
-.row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr) auto auto auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);cursor:pointer}
-.row:first-child{border-top:0}
+.list{display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
+.card{border:1px solid var(--line);border-radius:6px;background:var(--paper);overflow:hidden}
+.lines{border-top:1px solid var(--line);padding:6px 16px 12px;display:flex;flex-direction:column}
+.ln{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
+.ln:first-child{border-top:0}
+.ln img,.ln .noimg{width:48px;height:62px;object-fit:cover;border-radius:2px;background:var(--rose-soft);display:block}
+.ln-t{min-width:0;font-size:14px;line-height:1.45}
+.ln-code{font:500 12px var(--serif);letter-spacing:.04em;color:var(--muted);margin-inline-end:4px}
+.ln-s{font-size:13px;color:var(--muted);margin-top:2px}
+.ln-s .ltr{color:var(--ink);font-weight:600;letter-spacing:.02em}
+.ln-n{font:600 18px/1 var(--serif);text-align:center}
+.ln-n small{display:block;font:400 11px var(--sans);color:var(--muted);margin-top:3px}
+.lines .more{align-self:flex-start;margin-top:4px}
+.cnote{margin-top:8px;background:var(--soft);border-radius:4px;padding:8px 10px;font-size:13px}
+.it-img{width:36px;height:46px;object-fit:cover;border-radius:2px;grid-row:span 2}
+.row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr) auto auto auto;gap:14px;align-items:center;padding:12px 16px;cursor:pointer}
 .row:hover{background:var(--soft)}
 .row .shop{font-weight:600;font-size:15px;line-height:1.35}
 .row .meta{font-size:12.5px;color:var(--muted)}
@@ -121,7 +134,7 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
 .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--ink)}
 .sec h3{font-size:13px;color:var(--muted);font-weight:500;margin:0 0 8px;letter-spacing:.01em}
 .items{border:1px solid var(--line);border-radius:4px}
-.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;padding:8px 10px;border-top:1px solid var(--line);align-items:baseline;font-size:13.5px}
+.it{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;padding:8px 10px;border-top:1px solid var(--line);align-items:baseline;font-size:13.5px}
 .it:first-child{border-top:0}
 .it .c{font:500 12px var(--serif);letter-spacing:.04em;direction:ltr}
 .it .sz{color:var(--muted);direction:ltr;font-size:12.5px}
@@ -141,7 +154,7 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
 
 <header>
   <div class="wrap">
-    <div class="brand"><span class="mono">NG</span><span class="t">طلبات الجملة<small>الطلبات بتنزل هون لحالها من الموقع</small></span></div>
+    <div class="brand"><span class="mono" dir="ltr">NG</span><span class="t">طلبات الجملة<small>الطلبات بتنزل هون لحالها من الموقع</small></span></div>
     <div class="hd-r"><span class="note" id="synced"></span><button class="btn ghost sm" id="refresh" type="button">تحديث</button></div>
   </div>
 </header>
@@ -194,6 +207,9 @@ const fmtWhen = iso => { const n = daysAgo(iso); return n <= 0 ? "اليوم" : 
 function toast(t){ const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => el.hidden = true, 2200); }
 
 let ORDERS = [], fStatus = "", canWrite = true;
+const OPENED = new Set();
+const IMG = "https://s.alicdn.com/@sc04/kf/";
+const phoneFmt = p => { const d = String(p || "").replace(/\D/g, ""); return /^7\d{8}$/.test(d) ? "0" + d : String(p || ""); };
 
 // ---------- follow-up logic ----------
 function needsFollow(o){
@@ -277,13 +293,27 @@ function renderList(){
   if (!a.length) { $("list").innerHTML = `<div class="empty"><p>ما في طلبات بهالفلترة.</p><button class="btn ghost sm" type="button" onclick="resetFilters()">امسح الفلاتر</button></div>`; return; }
   $("list").innerHTML = a.map(o => {
     const fr = needsFollow(o) ? `<span class="flag">${esc(followReason(o))}</span>` : "";
-    return `<div class="row" data-id="${o.id}" tabindex="0" role="button" aria-label="${esc(o.shop || "طلب")}">
-      <div><div class="shop">${esc(o.shop || "محل بدون اسم")}${fr}</div><div class="meta">${esc(o.city || "")}${o.city && o.phone ? " · " : ""}${o.phone ? `<span class="ltr">${esc(o.phone)}</span>` : ""}</div></div>
-      <div class="qty c-qty"><b class="num">${o.models || 0}</b> موديل · <b class="num">${o.pieces || 0}</b> قطعة</div>
-      <div class="meta c-date">${fmtWhen(o.receivedAt)}${o.followUp && OPEN.has(o.status) ? `<br>متابعة ${fmtDate(o.followUp)}` : ""}</div>
-      <label class="tick c-tick${o.replied ? " on" : ""}" data-stop><input type="checkbox" data-reply="${o.id}"${o.replied ? " checked" : ""}${canWrite ? "" : " disabled"}>رديت</label>
-      <select class="pill st-${o.status} c-st" data-status="${o.id}" data-stop aria-label="حالة الطلب"${canWrite ? "" : " disabled"}>${STATUSES.map(([k, n]) => `<option value="${k}"${k === o.status ? " selected" : ""}>${n}</option>`).join("")}</select>
-    </div>`;
+    const items = o.items || [], showAll = OPENED.has(o.id), list = showAll ? items : items.slice(0, 4);
+    return `<article class="card" data-id="${o.id}">
+      <div class="row" tabindex="0" role="button" aria-label="${esc(o.shop || "طلب")}">
+        <div><div class="shop">${esc(o.shop || "محل بدون اسم")}${fr}</div>
+          <div class="meta">${o.city ? `<b>${esc(o.city)}</b>` : "بدون مدينة"}${o.phone ? ` · <span class="ltr">${esc(phoneFmt(o.phone))}</span>` : ""} · <span class="ltr">${esc(o.id)}</span></div></div>
+        <div class="qty c-qty"><b class="num">${o.models || 0}</b> موديل · <b class="num">${o.pieces || 0}</b> قطعة</div>
+        <div class="meta c-date">${fmtWhen(o.receivedAt)}${o.followUp && OPEN.has(o.status) ? `<br>متابعة ${fmtDate(o.followUp)}` : ""}</div>
+        <label class="tick c-tick${o.replied ? " on" : ""}" data-stop><input type="checkbox" data-reply="${o.id}"${o.replied ? " checked" : ""}${canWrite ? "" : " disabled"}>رديت</label>
+        <select class="pill st-${o.status} c-st" data-status="${o.id}" data-stop aria-label="حالة الطلب"${canWrite ? "" : " disabled"}>${STATUSES.map(([k, n]) => `<option value="${k}"${k === o.status ? " selected" : ""}>${n}</option>`).join("")}</select>
+      </div>
+      <div class="lines">
+        ${list.map(i => `<div class="ln">
+          ${i.img ? `<img src="${IMG}${esc(i.img)}_220x220.jpg" alt="" loading="lazy" referrerpolicy="no-referrer">` : `<span class="noimg"></span>`}
+          <div class="ln-t"><div><span class="ln-code ltr">${esc(i.code)}</span> ${esc(i.name)}</div>
+            <div class="ln-s"><span class="ltr">${Object.entries(i.sizes || {}).map(([s, n]) => `${s}×${n}`).join("   ")}</span>${i.note ? ` · ${esc(i.note)}` : ""}</div></div>
+          <div class="ln-n num">${i.total || 0}<small>قطعة</small></div>
+        </div>`).join("")}
+        ${items.length > 4 ? `<button class="linkbtn more" data-more="${o.id}" data-stop type="button">${showAll ? "أقل" : `عرض كل الموديلات (${items.length})`}</button>` : ""}
+        ${o.customerNotes ? `<div class="cnote"><b>ملاحظة التاجر:</b> ${esc(o.customerNotes)}</div>` : ""}
+      </div>
+    </article>`;
   }).join("");
 }
 function resetFilters(){ fStatus = ""; $("q").value = ""; $("fReplied").value = ""; $("fCity").value = ""; $("fWhen").value = ""; renderList(); }
@@ -324,7 +354,7 @@ async function load(){
 function openOrder(id){
   const o = ORDERS.find(x => x.id === id); if (!o) return;
   $("shTitle").textContent = o.shop || "طلب";
-  const wa = o.phone ? "962" + o.phone.replace(/\D/g, "").replace(/^(00962|962)/, "").replace(/^0/, "") : "";
+  const wa = o.phone ? "962" + phoneFmt(o.phone).replace(/\D/g, "").replace(/^(00962|962)/, "").replace(/^0/, "") : "";
   $("shBody").innerHTML = `
     <div class="sec"><h3>الحالة</h3>
       <div class="statusRow">${STATUSES.map(([k, n]) => `<button type="button" class="pill st-${k}" data-set="${k}" aria-pressed="${k === o.status}"${canWrite ? "" : " disabled"}><i></i>${n}</button>`).join("")}</div>
@@ -334,7 +364,7 @@ function openOrder(id){
     <div class="grid2">
       <label class="fld"><span>اسم المحل</span><input id="dShop" type="text" value="${esc(o.shop)}"></label>
       <label class="fld"><span>المدينة</span><input id="dCity" type="text" value="${esc(o.city)}"></label>
-      <label class="fld"><span>رقم واتساب التاجر</span><input id="dPhone" type="tel" dir="ltr" value="${esc(o.phone)}"></label>
+      <label class="fld"><span>رقم واتساب التاجر</span><input id="dPhone" type="tel" dir="ltr" value="${esc(phoneFmt(o.phone))}"></label>
       <label class="fld"><span>موعد المتابعة</span><input id="dFollow" type="date" value="${esc(o.followUp)}"></label>
       <label class="fld"><span>قيمة العرض (د.أ)</span><input id="dQuote" type="text" inputmode="decimal" dir="ltr" value="${esc(o.quote)}"></label>
       <label class="fld"><span>وصل بتاريخ</span><input id="dDate" type="date" value="${(o.receivedAt || "").slice(0, 10)}"></label>
@@ -344,7 +374,7 @@ function openOrder(id){
     <label class="fld"><span>ملاحظاتك</span><textarea id="dNotes" style="min-height:70px">${esc(o.notes)}</textarea></label>
     ${wa ? `<div class="contact">واتساب التاجر: <span class="ltr num">+${wa}</span> <a class="btn sm ghost" href="https://wa.me/${wa}" target="_blank" rel="noopener">افتح المحادثة</a></div>` : ""}
     <div class="sec"><h3>الموديلات · ${o.models || 0} موديل · ${o.pieces || 0} قطعة</h3>
-      ${(o.items || []).length ? `<div class="items">${o.items.map(i => `<div class="it"><span class="c">${esc(i.code)}</span><span>${esc(i.name)}${i.note ? ` <span class="note">· ${esc(i.note)}</span>` : ""}<br><span class="sz">${Object.entries(i.sizes || {}).map(([s, n]) => `${s}×${n}`).join("  ")}</span></span><span class="tot">${i.total || 0}</span></div>`).join("")}</div>
+      ${(o.items || []).length ? `<div class="items">${o.items.map(i => `<div class="it">${i.img ? `<img class="it-img" src="${IMG}${esc(i.img)}_220x220.jpg" alt="" referrerpolicy="no-referrer">` : ""}<span class="c">${esc(i.code)}</span><span>${esc(i.name)}${i.note ? ` <span class="note">· ${esc(i.note)}</span>` : ""}<br><span class="sz">${Object.entries(i.sizes || {}).map(([s, n]) => `${s}×${n}`).join("  ")}</span></span><span class="tot">${i.total || 0}</span></div>`).join("")}</div>
       <div style="margin-top:8px"><button class="btn sm ghost" type="button" id="dCopy">انسخ الأكواد والكميات</button></div>` : `<p class="note">ما في موديلات مسجلة لهالطلب.</p>`}
     </div>
     <div class="sec"><h3>السجل</h3><ul class="log">${(o.log || []).slice().reverse().map(l => `<li><b>${esc(l.text)}</b> · ${fmtDate(l.t)} ${new Date(l.t).toLocaleTimeString("ar-JO-u-nu-latn", {hour: "numeric", minute: "2-digit"})}</li>`).join("")}</ul></div>`;
@@ -383,8 +413,10 @@ $("list").addEventListener("change", e => {
   if (e.target.dataset.reply) setReplied(e.target.dataset.reply, e.target.checked);
   if (e.target.dataset.status) setStatus(e.target.dataset.status, e.target.value);
 });
-$("list").addEventListener("click", e => { if (e.target.closest("[data-stop]")) return; const r = e.target.closest(".row"); if (r) openOrder(r.dataset.id); });
-$("list").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList.contains("row")) openOrder(e.target.dataset.id); });
+$("list").addEventListener("click", e => {
+  const m = e.target.closest("[data-more]"); if (m) { const id = m.dataset.more; OPENED.has(id) ? OPENED.delete(id) : OPENED.add(id); renderList(); return; }
+  if (e.target.closest("[data-stop]")) return; const r = e.target.closest(".row"); if (r) openOrder(r.closest(".card").dataset.id); });
+$("list").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.classList.contains("row")) openOrder(e.target.closest(".card").dataset.id); });
 try { const s = JSON.parse(localStorage.getItem("ngFilters") || "{}"); if (s.sort) $("fSort").value = s.sort; } catch (e) {}
 $("fSort").addEventListener("change", () => { try { localStorage.setItem("ngFilters", JSON.stringify({sort: $("fSort").value})); } catch (e) {} });
 

@@ -454,7 +454,7 @@ document.getElementById("submitOrder").onclick = async () => {
   const btn = document.getElementById("submitOrder"); btn.disabled = true; btn.textContent = "عم نبعت الطلب…";
   const id = newId();
   const order = {id, shop, phone, city: document.getElementById("city").value.trim(), notes: document.getElementById("onote").value.trim(),
-    items: Object.keys(CART).map(k => ({code: k, name: CART[k].name, note: CART[k].note || "", sizes: CART[k].q}))};
+    items: Object.keys(CART).map(k => ({code: k, name: CART[k].name, note: CART[k].note || "", sizes: CART[k].q, img: String(CART[k].img || "").replace(IMG, "")}))};
   const waText = orderText(id);
   let ok = false;
   if (!ORDERS_URL) {

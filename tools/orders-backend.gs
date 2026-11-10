@@ -31,9 +31,10 @@ function rowToObj_(r) {
     o[c] = v; });
   o.replied = o.replied === true || o.replied === "TRUE" || o.replied === "true";
   o.models = +o.models || 0; o.pieces = +o.pieces || 0;
+  o.phone = String(o.phone || ""); if (/^7\d{8}$/.test(o.phone)) o.phone = "0" + o.phone;
   return o;
 }
-function objToRow_(o) { return COLS.map(c => JSON_COLS[c] ? JSON.stringify(o[c] || []) : (o[c] == null ? "" : o[c])); }
+function objToRow_(o) { return COLS.map(c => JSON_COLS[c] ? JSON.stringify(o[c] || []) : c === "phone" && o[c] ? "'" + String(o[c]).replace(/^'/, "") : (o[c] == null ? "" : o[c])); }
 function rows_(sh) { const last = sh.getLastRow(); return last > 1 ? sh.getRange(2, 1, last - 1, COLS.length).getValues() : []; }
 
 // ---------- dashboard (owner only) ----------
@@ -79,7 +80,7 @@ function doPost(e) {
   const items = (Array.isArray(o.items) ? o.items : []).slice(0, 200).map(i => {
     const sizes = {};
     Object.keys(i.sizes || {}).slice(0, 10).forEach(s => { const q = Math.max(0, Math.min(9999, parseInt(i.sizes[s], 10) || 0)); if (q) sizes[str_(s, 6)] = q; });
-    return {code: str_(i.code, 20), name: str_(i.name, 120), note: str_(i.note, 200), sizes: sizes,
+    return {code: str_(i.code, 20), name: str_(i.name, 120), note: str_(i.note, 200), img: /^[A-Za-z0-9]+\.(jpg|jpeg|png)$/.test(i.img || "") ? i.img : "", sizes: sizes,
             total: Object.keys(sizes).reduce((a, k) => a + sizes[k], 0)};
   }).filter(i => i.total > 0);
   if (!items.length) return out_({ok: false, error: "empty"});
