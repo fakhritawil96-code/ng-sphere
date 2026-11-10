@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NG SPHERE</title>
+<meta name="description" content="NG SPHERE — أزياء نسائية راقية في الأردن. تشكيلة جديدة كل أسبوع، والطلب مباشرة على واتساب.">
+<meta property="og:title" content="NG SPHERE">
+<meta property="og:description" content="تشكيلة جديدة كل أسبوع — اطلبي مباشرة على واتساب">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: boutique lookbook — monogram masthead, sticky category rail, 2→4 column garment grid with 3:4 portraits */
+:root{
+  --ivory:#fbf9f6;     /* page, from the logo's ground */
+  --paper:#ffffff;     /* card */
+  --ink:#141312;       /* monogram black */
+  --muted:#6f6863;
+  --line:#e7e1da;
+  --rose:#b0707f;      /* dusty rose, from the pink pieces in the feed */
+  --rose-soft:#f3e6e8;
+  --wa:#1f7a4d;
+  --serif:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ivory:#151312;--paper:#1d1a19;--ink:#f3eee8;--muted:#a59d96;--line:#302b29;--rose:#d79aa8;--rose-soft:#2e2225;--wa:#3fb07a;color-scheme:dark}}
+:root[data-theme="dark"]{--ivory:#151312;--paper:#1d1a19;--ink:#f3eee8;--muted:#a59d96;--line:#302b29;--rose:#d79aa8;--rose-soft:#2e2225;--wa:#3fb07a;color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%;display:block}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+
+/* masthead */
+.mast{text-align:center;padding-block:44px 28px;border-bottom:1px solid var(--line)}
+.mono{font-family:var(--serif);font-weight:400;font-size:clamp(64px,13vw,104px);line-height:.9;letter-spacing:-.04em;margin:0}
+.mono span{display:inline-block;transform:translateY(.08em);margin-inline-start:-.08em}
+.word{font-family:var(--serif);letter-spacing:.42em;font-size:13px;margin:14px 0 0;padding-inline-start:.42em}
+.tag{margin:18px auto 0;color:var(--muted);max-width:34ch;text-wrap:balance}
+.cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 18px;font:500 14px var(--sans);text-decoration:none;border:1px solid var(--ink);cursor:pointer;background:transparent;color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--ivory)}
+.btn svg{width:17px;height:17px;flex:none}
+
+/* category rail */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ivory)}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--ivory) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.rail .wrap{display:flex;gap:8px;overflow-x:auto;padding-block:12px;scrollbar-width:none}
+.rail .wrap::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 15px;font:400 14px var(--sans);cursor:pointer;white-space:nowrap}
+.chip small{color:var(--muted);font-variant-numeric:tabular-nums;margin-inline-start:4px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ivory);border-color:var(--ink)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.7}
+
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-block:22px 14px;color:var(--muted);font-size:13px}
+.meta b{color:var(--ink);font-weight:500}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px;padding-bottom:56px}
+@media (min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 20px}}
+@media (min-width:1040px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.item{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ph{position:relative;aspect-ratio:3/4;max-width:100%;background:var(--rose-soft);overflow:hidden;border:0;padding:0;cursor:zoom-in;border-radius:2px}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.ph:hover img{transform:scale(1.03)}
+.code{position:absolute;top:8px;inset-inline-start:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
+.nm{font-weight:500;font-size:14.5px;line-height:1.5;margin:4px 0 0;text-wrap:balance}
+.sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
+.price{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.price.ask{font-weight:400;color:var(--rose)}
+.order{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ink);border-radius:999px;padding:8px 10px;font:500 13.5px var(--sans);text-decoration:none;color:var(--ink)}
+.order:hover{background:var(--ink);color:var(--ivory)}
+.order svg{width:15px;height:15px}
+
+/* how to order */
+.how{border-top:1px solid var(--line);padding-block:44px}
+.how h2{font-weight:500;font-size:20px;margin:0 0 20px;text-align:center}
+.steps{list-style:none;margin:0 auto;padding:0;display:grid;gap:14px;max-width:880px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));counter-reset:s}
+.steps li{counter-increment:s;background:var(--paper);border:1px solid var(--line);padding:18px;border-radius:2px;min-width:0}
+.steps li::before{content:counter(s);font:400 30px/1 var(--serif);color:var(--rose);display:block;margin-bottom:8px}
+.steps p{margin:0;color:var(--muted);font-size:14px}
+.steps strong{display:block;color:var(--ink);font-weight:500;margin-bottom:2px}
+
+footer{border-top:1px solid var(--line);padding-block:26px;text-align:center;color:var(--muted);font-size:13px}
+footer .ltr{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+
+/* lightbox */
+dialog{border:0;padding:0;background:var(--paper);color:var(--ink);max-width:min(560px,94vw);width:100%;border-radius:4px}
+dialog::backdrop{background:rgb(10 9 9 / .72)}
+.lb img{width:100%;max-height:72vh;object-fit:contain;background:var(--rose-soft)}
+.lb .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.lb .x{position:absolute;top:10px;inset-inline-end:10px;width:36px;height:36px;border-radius:50%;border:0;background:var(--paper);color:var(--ink);font-size:20px;cursor:pointer}
+.lb .order{background:var(--ink);color:var(--ivory)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <h1 class="mono" aria-label="NG SPHERE">N<span>G</span></h1>
+    <p class="word">SPHERE</p>
+    <p class="tag">أزياء نسائية راقية، تشكيلة جديدة كل أسبوع وتوصيل داخل الأردن</p>
+    <div class="cta">
+      <a class="btn solid" id="waTop" href="https://wa.me/__WA__" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z"/></svg>
+        واتساب
+      </a>
+      <a class="btn" href="https://instagram.com/__IG__" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        إنستغرام
+      </a>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" aria-label="الأقسام"><div class="wrap" id="chips"></div></nav>
+
+<main class="wrap">
+  <div class="meta"><span><b id="shown">__COUNT__</b> قطعة</span><span>آخر تحديث: __UPDATED__</span></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<section class="how">
+  <div class="wrap">
+    <h2>كيف تطلبين</h2>
+    <ol class="steps">
+      <li><strong>اختاري القطعة</strong><p>كل قطعة إلها كود، مثل NG-12345، مكتوب على صورتها.</p></li>
+      <li><strong>اضغطي «اطلبي على واتساب»</strong><p>بتنفتح رسالة جاهزة فيها اسم القطعة وكودها. ابعتيها مع المقاس واللون.</p></li>
+      <li><strong>منأكد معك ومنوصّلك</strong><p>منرد عليك بالسعر النهائي ومدة التوصيل، وبعد التأكيد منجهّز طلبك.</p></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">NG SPHERE · الأردن · واتساب <span class="ltr">__WA_DISPLAY__</span> · إنستغرام <span class="ltr">@__IG__</span></div>
+</footer>
+
+<dialog id="lb" class="lb" aria-label="تفاصيل القطعة">
+  <button class="x" id="lbx" aria-label="إغلاق">×</button>
+  <img id="lbimg" alt="" referrerpolicy="no-referrer">
+  <div class="body">
+    <div class="nm" id="lbname"></div>
+    <div class="sub"><span id="lbcode"></span><span id="lbprice"></span></div>
+    <a class="order" id="lborder" target="_blank" rel="noopener">اطلبي على واتساب</a>
+  </div>
+</dialog>
+
+<script>
+const P = __PRODUCTS__;
+const WA = "__WA__";
+const CATS = [["all","الكل"],["evening","فساتين سهرة"],["dresses","فساتين"],["sets","أطقم"],["jackets","جاكيتات وبليزرات"],["knit","تريكو"]];
+const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const label = p => p.name + (p.color ? " – " + p.color : "");
+const priceHtml = p => p.jod ? `<span class="price">${p.jod} د.أ</span>` : `<span class="price ask">السعر على واتساب</span>`;
+const waLink = p => "https://wa.me/" + WA + "?text=" + encodeURIComponent(`مرحبا NG SPHERE، حابة أطلب:\n${label(p)}\nكود القطعة: ${p.code}\nالمقاس: \nاللون: `);
+const thumb = p => p.img + "_480x480.jpg";
+
+document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي استفسار");
+
+let cur = "all";
+try { const h = location.hash.slice(1); if (CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
+
+function chips(){
+  const el = document.getElementById("chips");
+  el.innerHTML = CATS.map(([k,n]) => {
+    const c = k === "all" ? P.length : P.filter(p => p.cat === k).length;
+    return c ? `<button class="chip" data-k="${k}" aria-pressed="${k===cur}">${n}<small>${c}</small></button>` : "";
+  }).join("");
+  el.onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); chips(); render(); };
+}
+function render(){
+  const list = cur === "all" ? P : P.filter(p => p.cat === cur);
+  document.getElementById("shown").textContent = list.length;
+  document.getElementById("grid").innerHTML = list.map((p,i) => `
+    <article class="item">
+      <button class="ph" data-i="${P.indexOf(p)}" aria-label="عرض ${esc(label(p))}">
+        <img src="${thumb(p)}" alt="${esc(label(p))}" loading="${i<8?"eager":"lazy"}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.img}'">
+        <span class="code">${p.code}</span>
+      </button>
+      <h3 class="nm">${esc(label(p))}</h3>
+      <div class="sub">${priceHtml(p)}</div>
+      <a class="order" href="${waLink(p)}" target="_blank" rel="noopener">${waIcon}اطلبي على واتساب</a>
+    </article>`).join("");
+}
+const lb = document.getElementById("lb");
+document.getElementById("grid").addEventListener("click", e => {
+  const b = e.target.closest(".ph"); if (!b) return;
+  const p = P[+b.dataset.i];
+  document.getElementById("lbimg").src = p.img;
+  document.getElementById("lbimg").alt = label(p);
+  document.getElementById("lbname").textContent = label(p);
+  document.getElementById("lbcode").textContent = p.code;
+  document.getElementById("lbprice").innerHTML = priceHtml(p);
+  document.getElementById("lborder").href = waLink(p);
+  lb.showModal();
+});
+document.getElementById("lbx").onclick = () => lb.close();
+lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
+chips(); render();
+</script>
+</body>
+</html>
