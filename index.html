@@ -431,7 +431,7 @@ document.getElementById("moreBtn").onclick = more;
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && shownN < list.length) more(); }, {rootMargin: "800px"}).observe(document.getElementById("moreBtn"));
 }
-const FX = {a:"بقصّة حورية بتبرز القوام", b:"قصّة ضيقة على الجسم", c:"قصّة A بتنزل بنعومة", d:"قصّة واسعة ومريحة",
+const FX = {a:"بقصّة حورية بتبرز القوام", b:"بقصّة ضيقة على الجسم", c:"بقصّة A بتنزل بنعومة", d:"بقصّة واسعة ومريحة",
   e:"بأكتاف مكشوفة (أوف شولدر)", f:"على كتف واحد", g:"برقبة هولتر", h:"بدون أكتاف", i:"بياقة V", j:"بياقة مربعة", k:"برقبة عالية",
   l:"بأكمام طويلة", m:"بأكمام قصيرة", n:"بدون أكمام", o:"بأكمام منفوخة",
   p:"ساتان", q:"شيفون", r:"مخمل", s:"تويد", t:"جلد", u:"جينز", v:"كتان", w:"تريكو", x:"تول", y:"دانتيل", z:"ترتر", A:"صوف", B:"قطن",
@@ -439,10 +439,11 @@ const FX = {a:"بقصّة حورية بتبرز القوام", b:"قصّة ضي�
   K:"بفتحة جانبية", L:"بكشكش", M:"بأزرار", W:"بظهر مكشوف", X:"بنقشة مميزة", Y:"بلمسة فينتج"};
 function describe(p){
   const f = p.f || "", has = k => f.includes(k), pick = ks => ks.split("").filter(has).map(k => FX[k]);
-  const type = label(p).split(" ")[0] === "فستان" && p.cat === "evening" ? "فستان سهرة" : label(p);
+  const nm = p.name, w = nm.split(" ");
+  const type = /^(فستان سهرة|كنزة تريكو|بنطلون جينز|معطف فرو|معطف صوف|جاكيت شتوي|فستان محتشم|فستان بليزر|طقم بليزر)/.test(nm) ? w.slice(0, 2).join(" ") : w[0];
   const len = has("P") ? "طويل" : has("O") ? "ميدي" : has("N") ? "قصير" : "";
   const s = [];
-  const cut = pick("abcdefghijk").concat(pick("lmno"));
+  const cut = pick("abcd").slice(0, 1).concat(pick("efghijk"), pick("lmno"));
   s.push(`${type}${len && !type.includes(len) ? " " + len : ""}${cut.length ? " " + cut.slice(0, 3).join("، ") : ""}.`);
   const fab = pick("pqrstuvwxyzAB");
   if (fab.length) s.push(`الخامة: ${fab.slice(0, 3).join(" و")}.`);
@@ -452,7 +453,7 @@ function describe(p){
   const sea = has("U") && !has("V") ? "للصيف" : has("V") && !has("U") ? "للخريف والشتاء" : "";
   if (occ || sea) s.push([occ, sea].filter(Boolean).join("، ") + ".");
   const n = (p.colors || []).length;
-  s.push(n > 1 ? `متوفر بـ${n === 2 ? "لونين" : n + " ألوان"}: ${p.colors.map(c => c.name).join("، ")}. المقاسات من S لـ XXL.` : n ? `اللون: ${p.colors[0].name}. المقاسات من S لـ XXL.` : "المقاسات من S لـ XXL.");
+  s.push(n > 1 ? `متوفر ${n === 2 ? "بلونين" : "بـ" + n + " ألوان"}: ${p.colors.map(c => c.name).join("، ")}. المقاسات من S لـ XXL.` : n ? `اللون: ${p.colors[0].name}. المقاسات من S لـ XXL.` : "المقاسات من S لـ XXL.");
   return s.join(" ");
 }
 function showcase(){
@@ -671,7 +672,7 @@ document.getElementById("clearCart").onclick = () => {
   else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
 };
 
-fetch("products.json?v=1794325545").then(r => r.json()).then(d => {
+fetch("products.json?v=1794325572").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
     pop: +a[6] || 0, f: a[10] || "", colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
