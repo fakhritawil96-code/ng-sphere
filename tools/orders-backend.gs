@@ -12,7 +12,7 @@ const JSON_COLS = {items: 1, log: 1};
 const STATUSES = ["new", "waiting", "confirmed", "processing", "delivered", "cancelled"];
 
 function sheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById("1lVug4nLQ4928YfQF_XE33Ngq31XfACeJGpSW7bAoTqE");
   let sh = ss.getSheetByName(SHEET);
   if (!sh) { sh = ss.insertSheet(SHEET, 0); sh.appendRow(COLS); sh.setFrozenRows(1); }
   return sh;

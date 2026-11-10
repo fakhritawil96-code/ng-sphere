@@ -22,7 +22,7 @@ CONFIG = {
     "instagram": "ng_sphere1",
     "whatsapp": "962796199881",
     "whatsapp_display": "0796 199 881",
-    "orders_url": "",  # Apps Script web app /exec URL
+    "orders_url": "https://script.google.com/macros/s/AKfycbyWc9hvmPFmyvvELwOOo1lKAMs3MVk1dpHNuId3ENC1XouhGDqfO9G5vMJGGnMJYNGX/exec",  # Apps Script web app /exec URL
     "usd_to_jod": 0.709,
 }
 
