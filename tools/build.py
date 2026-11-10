@@ -279,7 +279,18 @@ json.dump({"updated": updated, "items": items}, open("products.json", "w", encod
           ensure_ascii=False, separators=(",", ":"))
 
 tpl = open(os.path.join(HERE, "template.html"), encoding="utf-8").read()
-out = (tpl.replace("__WA__", CONFIG["whatsapp"])
+# ---------- showcase band data, embedded so the band starts before products.json loads ----------
+cut = (datetime.date.today() - datetime.timedelta(days=21)).isoformat()
+bypop = lambda arr: sorted(arr, key=lambda it: (-(it[6] or 0), it[9] if it[9] is not None else 10**6))
+mini = lambda it: [it[0], it[1] + (" – " + it[3] if it[3] else ""), it[5][0], 1 if (it[8] or "") >= cut else 0]
+SHOW = [["new", "وصل حديثًا", [mini(x) for x in [it for it in items if (it[8] or "") >= cut][:18]], "new"],
+        ["pop", "الأكثر طلبًا", [mini(x) for x in bypop([it for it in items if it[6]])[:18]], "all"],
+        ["evening", "فساتين سهرة", [mini(x) for x in bypop([it for it in items if it[2] == "evening"])[:18]], "evening"],
+        ["sets", "أطقم", [mini(x) for x in bypop([it for it in items if it[2] == "sets"])[:18]], "sets"],
+        ["jackets", "جاكيتات", [mini(x) for x in bypop([it for it in items if it[2] == "jackets"])[:18]], "jackets"]]
+SHOW = [s for s in SHOW if len(s[2]) >= 6]
+out = (tpl.replace("__SHOW__", json.dumps(SHOW, ensure_ascii=False, separators=(",", ":")))
+          .replace("__WA__", CONFIG["whatsapp"])
           .replace("__WA_DISPLAY__", CONFIG["whatsapp_display"])
           .replace("__IG__", CONFIG["instagram"])
           .replace("__ORDERS_URL__", CONFIG["orders_url"])

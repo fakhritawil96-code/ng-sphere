@@ -69,15 +69,17 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .item{display:flex;flex-direction:column;gap:8px;min-width:0}
 .ph{position:relative;aspect-ratio:3/4;max-width:100%;background:var(--rose-soft);overflow:hidden;border:0;padding:0;cursor:zoom-in;border-radius:2px}
 .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
-.ph .gal{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;direction:ltr;overscroll-behavior-x:contain}
-.ph .gal::-webkit-scrollbar{display:none}
-.ph .gal img{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;-webkit-user-drag:none;user-select:none}
+.ph .gal{width:100%;height:100%;overflow:hidden;direction:ltr;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.ph .strip{display:flex;width:100%;height:100%;transition:transform .32s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.ph .strip.dragging{transition:none}
+.ph .gal img{flex:0 0 100%;min-width:100%;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .ph .dots{direction:ltr;position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .ph .dots i{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.55;box-shadow:0 0 2px rgba(0,0,0,.35);transition:opacity .2s,transform .2s}
 .ph .dots i.on{opacity:1;transform:scale(1.25)}
 .ph .nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 90%,transparent);color:var(--ink);font-size:22px;line-height:1;cursor:pointer;opacity:0;transition:opacity .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .ph .nav.prev{left:8px}.ph .nav.next{right:8px}
 @media (hover:hover){.ph:hover .nav{opacity:1}}
+@media (hover:none){.ph .nav{display:none}}
 .code{position:absolute;top:8px;right:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
 .nm{font-weight:500;font-size:14.5px;line-height:1.5;margin:4px 0 0;text-wrap:balance}
 .sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
@@ -203,12 +205,12 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .showTab[aria-selected="true"] i{animation:showbar var(--dur,7s) linear forwards}
 @keyframes showbar{to{width:100%}}
 .showStage{position:relative;direction:ltr;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.showStage{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;cursor:grab;touch-action:pan-x pan-y}
+.showStage{overflow:hidden;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .showStage::-webkit-scrollbar{display:none}
 .showStage.drag{cursor:grabbing}
 .showTrack{display:flex;gap:14px;width:max-content;transition:opacity .45s ease}
 .showTrack.fade{opacity:0}
-.sc{flex:0 0 auto;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
+.sc{flex:0 0 auto;text-decoration:none;-webkit-touch-callout:none;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
 .sc .ph{display:block;aspect-ratio:3/4;overflow:hidden;border-radius:4px;background:var(--rose-soft)}
 .sc img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transition:transform .6s ease}
 .sc:hover img{transform:scale(1.05)}
@@ -390,17 +392,39 @@ function chips(){
 }
 document.getElementById("chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; try { history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); } catch(e) {} chips(); filter(); };
 
-document.getElementById("grid").addEventListener("scroll", e => {
-  const g = e.target; if (!g.classList || !g.classList.contains("gal")) return;
-  const k = Math.round(g.scrollLeft / g.clientWidth), d = g.parentElement.querySelectorAll(".dots i");
-  d.forEach((x, j) => x.classList.toggle("on", j === k));
-}, true);
+let galSwiped = false, gd = null;
+function galGo(ph, k){
+  const n = ph.querySelectorAll(".strip img").length; if (!n) return;
+  k = (k + n) % n; ph.dataset.k = k;
+  const s = ph.querySelector(".strip"); s.classList.remove("dragging"); s.style.transform = `translate3d(${-k * 100}%,0,0)`;
+  ph.querySelectorAll(".dots i").forEach((x, j) => x.classList.toggle("on", j === k));
+}
+const grid = document.getElementById("grid");
+grid.addEventListener("pointerdown", e => {
+  const ph = e.target.closest(".ph"); if (!ph || e.target.closest("[data-nav]") || ph.querySelectorAll(".strip img").length < 2) return;
+  gd = {ph, x0: e.clientX, y0: e.clientY, id: e.pointerId, axis: null, w: ph.clientWidth, k: +ph.dataset.k || 0};
+});
+grid.addEventListener("pointermove", e => {
+  if (!gd || e.pointerId !== gd.id) return;
+  const dx = e.clientX - gd.x0, dy = e.clientY - gd.y0;
+  if (!gd.axis) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; gd.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; if (gd.axis === "x") try { gd.ph.setPointerCapture(e.pointerId); } catch (_) {} }
+  if (gd.axis !== "x") return;
+  const s = gd.ph.querySelector(".strip"); s.classList.add("dragging");
+  s.style.transform = `translate3d(${-gd.k * gd.w + dx}px,0,0)`;
+});
+const galEnd = e => {
+  if (!gd) return; const g = gd; gd = null;
+  if (g.axis !== "x") return;
+  const dx = e.clientX - g.x0; galSwiped = true; setTimeout(() => galSwiped = false, 350);
+  galGo(g.ph, g.k + (dx < -g.w * 0.18 ? 1 : dx > g.w * 0.18 ? -1 : 0));
+};
+grid.addEventListener("pointerup", galEnd); grid.addEventListener("pointercancel", galEnd);
 document.getElementById("grid").addEventListener("keydown", e => { const ph = e.target.closest && e.target.closest(".ph"); if (ph && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); ph.click(); } });
 function card(p){
   const inC = CART[p.code];
   return `<article class="item" data-code="${p.code}">
       <div class="ph" data-i="${p.i}" role="button" tabindex="0" aria-label="عرض ${esc(label(p))}">
-        <div class="gal">${p.imgs.slice(0, 6).map((u, k) => `<img src="${u}_480x480.jpg" alt="${k ? "" : esc(label(p))}" loading="lazy" draggable="false" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${u}'">`).join("")}</div>
+        <div class="gal"><div class="strip">${p.imgs.slice(0, 6).map((u, k) => `<img src="${u}_480x480.jpg" alt="${k ? "" : esc(label(p))}" loading="lazy" draggable="false" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${u}'">`).join("")}</div></div>
         ${p.imgs.length > 1 ? `<span class="nav prev" data-nav="-1" aria-hidden="true">‹</span><span class="nav next" data-nav="1" aria-hidden="true">›</span><span class="dots">${p.imgs.slice(0, 6).map((_, k) => `<i${k ? "" : ' class="on"'}></i>`).join("")}</span>` : ""}
         <span class="code">${p.code}</span>
         ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور${p.colors.length > 1 ? " · " + p.colors.length + " ألوان" : ""}</span>` : ""}
@@ -472,56 +496,61 @@ function describe(p){
   s.push(n > 1 ? `متوفر ${n === 2 ? "بلونين" : "بـ" + n + " ألوان"}: ${p.colors.map(c => c.name).join("، ")}. المقاسات من S لـ XXL.` : n ? `اللون: ${p.colors[0].name}. المقاسات من S لـ XXL.` : "المقاسات من S لـ XXL.");
   return s.join(" ");
 }
-function showcase(){
-  const top = (arr, n) => arr.slice(0, n);
-  const byPop = a => a.slice().sort((x, y) => y.pop - x.pop || x.rank - y.rank);
-  const S = [
-    ["new", "وصل حديثًا", top(P.filter(p => p.isNew), 18), "new"],
-    ["pop", "الأكثر طلبًا", top(byPop(P.filter(p => p.pop > 0)), 18), "all"],
-    ["evening", "فساتين سهرة", top(byPop(P.filter(p => p.cat === "evening")), 18), "evening"],
-    ["sets", "أطقم", top(byPop(P.filter(p => p.cat === "sets")), 18), "sets"],
-    ["jackets", "جاكيتات", top(byPop(P.filter(p => p.cat === "jackets")), 18), "jackets"],
-  ].filter(s => s[2].length >= 6);
-  if (!S.length) return;
-  const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack");
-  const stage = document.getElementById("showStage");
-  const DUR = 7000, SPEED = 38; let i = 0, timer = null, pos = 0, last = 0, hold = 0, touched = 0;
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const busy = ms => { hold = performance.now() + ms; touched = performance.now(); };
-  function tick(ts){
-    const dt = last ? Math.min(64, ts - last) / 1000 : 0; last = ts;
-    const half = track.scrollWidth / 2;
-    if (ts < hold || document.hidden || reduce || stage.matches(":hover") && !matchMedia("(hover: none)").matches) pos = stage.scrollLeft;
-    else { pos += SPEED * dt; if (half && pos >= half) pos -= half; stage.scrollLeft = pos; }
-    if (half && stage.scrollLeft >= half) { stage.scrollLeft -= half; pos = stage.scrollLeft; }
-    if (half && stage.scrollLeft <= 0 && ts < hold) { stage.scrollLeft += half; pos = stage.scrollLeft; }
-    requestAnimationFrame(tick);
-  }
-  ["touchstart", "touchmove", "wheel"].forEach(ev => stage.addEventListener(ev, () => busy(2500), {passive: true}));
-  stage.addEventListener("touchend", () => busy(1800), {passive: true});
-  let drag = null, moved = false;
-  stage.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; drag = {x: e.clientX, s: stage.scrollLeft}; moved = false; busy(3000); });
-  addEventListener("pointermove", e => { if (!drag) return; const d = e.clientX - drag.x; if (Math.abs(d) > 5) { moved = true; stage.classList.add("drag"); } stage.scrollLeft = drag.s - d; busy(3000); });
-  addEventListener("pointerup", () => { if (drag) { drag = null; stage.classList.remove("drag"); busy(1500); } });
-  stage.addEventListener("click", e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
-  stage.addEventListener("dragstart", e => e.preventDefault());
+const SHOW = __SHOW__;
+let pendingOpen = null;
+function openByCode(code){ const p = P.find(x => x.code === code); if (p) openItem(p); else pendingOpen = code; }
+(function showcase(){
+  const S = SHOW; if (!S.length) return;
+  const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack"), stage = document.getElementById("showStage");
+  const DUR = 7000, SPEED = 40, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, mouseHover = matchMedia("(hover: hover)").matches;
+  let i = 0, x = 0, v = 0, last = 0, hold = 0, touched = 0, drag = null, moved = false, hovering = false;
+  const esc2 = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const card = it => `<a class="sc" href="#" data-code="${it[0]}" draggable="false"><span class="ph"><img src="${IMG}${it[2]}_480x480.jpg" alt="${esc2(it[1])}" draggable="false" referrerpolicy="no-referrer">${it[3] ? `<span class="b">جديد</span>` : ""}</span><span class="c">${it[0]}</span><span class="n">${esc2(it[1])}</span></a>`;
   tabs.innerHTML = S.map((s, k) => `<button class="showTab" role="tab" type="button" data-k="${k}" aria-selected="false">${s[1]}<i></i></button>`).join("");
   sec.style.setProperty("--dur", DUR / 1000 + "s");
-  const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
+  const half = () => track.scrollWidth / 2;
+  const wrap = () => { const h = half(); if (h) { x %= h; if (x < 0) x += h; } };
+  const apply = () => { track.style.transform = `translate3d(${-x}px,0,0)`; };
   function render(k, animate){
     i = k; const s = S[k];
     tabs.querySelectorAll(".showTab").forEach((b, j) => { b.setAttribute("aria-selected", j === k); const bar = b.querySelector("i"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
-    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; stage.scrollLeft = 0; pos = 0; track.classList.remove("fade"); };
-    if (animate) { track.classList.add("fade"); setTimeout(put, 450); } else put();
+    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; x = 0; v = 0; apply(); track.classList.remove("fade"); };
+    if (animate) { track.classList.add("fade"); setTimeout(put, 400); } else put();
   }
-  function play(){ clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !sec.matches(":hover") && performance.now() - touched > 12000) render((i + 1) % S.length, true); }, DUR); }
-  tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); play(); } };
-  track.onclick = e => { const b = e.target.closest(".sc"); if (b) openItem(P[+b.dataset.i]); };
+  function tick(ts){
+    const dt = last ? Math.min(50, ts - last) / 1000 : 0; last = ts;
+    if (!drag) {
+      if (Math.abs(v) > 5) { x += v * dt; v *= Math.pow(0.04, dt); }            // momentum after a swipe
+      else if (ts > hold && !document.hidden && !reduce && !hovering) x += SPEED * dt;
+      wrap(); apply();
+    }
+    requestAnimationFrame(tick);
+  }
+  stage.addEventListener("pointerdown", e => {
+    drag = {x0: e.clientX, y0: e.clientY, s: x, t: performance.now(), lx: e.clientX, id: e.pointerId, axis: null}; moved = false; v = 0;
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+    if (!drag.axis) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; if (drag.axis === "x") { try { stage.setPointerCapture(e.pointerId); } catch (_) {} stage.classList.add("drag"); } }
+    if (drag.axis !== "x") return;
+    moved = true; const now = performance.now(), ddt = Math.max(1, now - drag.t);
+    v = -(e.clientX - drag.lx) / ddt * 1000; drag.lx = e.clientX; drag.t = now;
+    x = drag.s - dx; wrap(); apply();
+  });
+  const end = () => { if (!drag) return; if (drag.axis !== "x") v = 0; drag = null; stage.classList.remove("drag"); hold = performance.now() + 1500; touched = performance.now(); };
+  stage.addEventListener("pointerup", end); stage.addEventListener("pointercancel", end);
+  stage.addEventListener("wheel", e => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { e.preventDefault(); x += e.deltaX; wrap(); apply(); hold = performance.now() + 1500; touched = performance.now(); } }, {passive: false});
+  if (mouseHover) { sec.addEventListener("mouseenter", () => hovering = true); sec.addEventListener("mouseleave", () => hovering = false); }
+  track.addEventListener("click", e => { e.preventDefault(); if (moved) { moved = false; return; } const a = e.target.closest(".sc"); if (a) openByCode(a.dataset.code); });
+  track.addEventListener("dragstart", e => e.preventDefault());
+  tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); touched = performance.now(); } };
+  setInterval(() => { if (!document.hidden && !hovering && !drag && performance.now() - touched > 12000) render((i + 1) % S.length, true); }, DUR);
   document.getElementById("showAll").onclick = () => { const k = S[i][3]; const c = document.querySelector(`.chip[data-k="${k}"]`); if (c) c.click();
     if (S[i][0] === "pop") { document.getElementById("sort").value = "pop"; filter(); }
     document.getElementById("chips").scrollIntoView({behavior: "smooth"}); };
-  sec.hidden = false; render(0, false); play(); requestAnimationFrame(tick);
-}
+  sec.hidden = false; render(0, false); requestAnimationFrame(tick);
+})();
 document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
 try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
 let qt;
@@ -583,8 +612,9 @@ document.getElementById("qtable").addEventListener("click", e => {
   if (k >= 0) show(k); else { const im = document.getElementById("lbimg"); im.src = u + "_960x960.jpg"; }
 });
 document.getElementById("grid").addEventListener("click", e => {
+  if (galSwiped) { galSwiped = false; return; }
   const nv = e.target.closest("[data-nav]");
-  if (nv) { const g = nv.parentElement.querySelector(".gal"); g.scrollBy({left: +nv.dataset.nav * g.clientWidth, behavior: "smooth"}); return; }
+  if (nv) { const ph = nv.closest(".ph"); galGo(ph, (+ph.dataset.k || 0) + +nv.dataset.nav); return; }
   const b = e.target.closest(".ph, .add"); if (!b) return;
   openItem(P[+b.dataset.i]);
 });
@@ -717,7 +747,7 @@ fetch("products.json?v=__VER__").then(r => r.json()).then(d => {
   const pops = P.map(p => p.pop).filter(Boolean).sort((a, b) => b - a), popCut = pops[Math.floor(pops.length * 0.1)] || Infinity;
   P.forEach((p, i) => { p.i = i; p.isNew = !!p.added && p.added >= cutoff; p.isPop = p.pop > 0 && p.pop >= popCut; });
   document.getElementById("updated").textContent = d.updated;
-  chips(); filter(); saveCart(); showcase();
+  chips(); filter(); saveCart(); if (pendingOpen) { const c = pendingOpen; pendingOpen = null; openByCode(c); }
 }).catch(() => {
   document.getElementById("grid").innerHTML = '<p class="note">تعذّر تحميل القطع. حدّثي الصفحة أو راسلينا على واتساب.</p>';
 });

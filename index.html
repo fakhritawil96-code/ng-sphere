@@ -69,15 +69,17 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .item{display:flex;flex-direction:column;gap:8px;min-width:0}
 .ph{position:relative;aspect-ratio:3/4;max-width:100%;background:var(--rose-soft);overflow:hidden;border:0;padding:0;cursor:zoom-in;border-radius:2px}
 .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
-.ph .gal{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;direction:ltr;overscroll-behavior-x:contain}
-.ph .gal::-webkit-scrollbar{display:none}
-.ph .gal img{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;-webkit-user-drag:none;user-select:none}
+.ph .gal{width:100%;height:100%;overflow:hidden;direction:ltr;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.ph .strip{display:flex;width:100%;height:100%;transition:transform .32s cubic-bezier(.2,.7,.2,1);will-change:transform}
+.ph .strip.dragging{transition:none}
+.ph .gal img{flex:0 0 100%;min-width:100%;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .ph .dots{direction:ltr;position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .ph .dots i{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.55;box-shadow:0 0 2px rgba(0,0,0,.35);transition:opacity .2s,transform .2s}
 .ph .dots i.on{opacity:1;transform:scale(1.25)}
 .ph .nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 90%,transparent);color:var(--ink);font-size:22px;line-height:1;cursor:pointer;opacity:0;transition:opacity .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .ph .nav.prev{left:8px}.ph .nav.next{right:8px}
 @media (hover:hover){.ph:hover .nav{opacity:1}}
+@media (hover:none){.ph .nav{display:none}}
 .code{position:absolute;top:8px;right:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
 .nm{font-weight:500;font-size:14.5px;line-height:1.5;margin:4px 0 0;text-wrap:balance}
 .sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
@@ -203,12 +205,12 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .showTab[aria-selected="true"] i{animation:showbar var(--dur,7s) linear forwards}
 @keyframes showbar{to{width:100%}}
 .showStage{position:relative;direction:ltr;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.showStage{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;cursor:grab;touch-action:pan-x pan-y}
+.showStage{overflow:hidden;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .showStage::-webkit-scrollbar{display:none}
 .showStage.drag{cursor:grabbing}
 .showTrack{display:flex;gap:14px;width:max-content;transition:opacity .45s ease}
 .showTrack.fade{opacity:0}
-.sc{flex:0 0 auto;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
+.sc{flex:0 0 auto;text-decoration:none;-webkit-touch-callout:none;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
 .sc .ph{display:block;aspect-ratio:3/4;overflow:hidden;border-radius:4px;background:var(--rose-soft)}
 .sc img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transition:transform .6s ease}
 .sc:hover img{transform:scale(1.05)}
@@ -390,17 +392,39 @@ function chips(){
 }
 document.getElementById("chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; try { history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); } catch(e) {} chips(); filter(); };
 
-document.getElementById("grid").addEventListener("scroll", e => {
-  const g = e.target; if (!g.classList || !g.classList.contains("gal")) return;
-  const k = Math.round(g.scrollLeft / g.clientWidth), d = g.parentElement.querySelectorAll(".dots i");
-  d.forEach((x, j) => x.classList.toggle("on", j === k));
-}, true);
+let galSwiped = false, gd = null;
+function galGo(ph, k){
+  const n = ph.querySelectorAll(".strip img").length; if (!n) return;
+  k = (k + n) % n; ph.dataset.k = k;
+  const s = ph.querySelector(".strip"); s.classList.remove("dragging"); s.style.transform = `translate3d(${-k * 100}%,0,0)`;
+  ph.querySelectorAll(".dots i").forEach((x, j) => x.classList.toggle("on", j === k));
+}
+const grid = document.getElementById("grid");
+grid.addEventListener("pointerdown", e => {
+  const ph = e.target.closest(".ph"); if (!ph || e.target.closest("[data-nav]") || ph.querySelectorAll(".strip img").length < 2) return;
+  gd = {ph, x0: e.clientX, y0: e.clientY, id: e.pointerId, axis: null, w: ph.clientWidth, k: +ph.dataset.k || 0};
+});
+grid.addEventListener("pointermove", e => {
+  if (!gd || e.pointerId !== gd.id) return;
+  const dx = e.clientX - gd.x0, dy = e.clientY - gd.y0;
+  if (!gd.axis) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; gd.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; if (gd.axis === "x") try { gd.ph.setPointerCapture(e.pointerId); } catch (_) {} }
+  if (gd.axis !== "x") return;
+  const s = gd.ph.querySelector(".strip"); s.classList.add("dragging");
+  s.style.transform = `translate3d(${-gd.k * gd.w + dx}px,0,0)`;
+});
+const galEnd = e => {
+  if (!gd) return; const g = gd; gd = null;
+  if (g.axis !== "x") return;
+  const dx = e.clientX - g.x0; galSwiped = true; setTimeout(() => galSwiped = false, 350);
+  galGo(g.ph, g.k + (dx < -g.w * 0.18 ? 1 : dx > g.w * 0.18 ? -1 : 0));
+};
+grid.addEventListener("pointerup", galEnd); grid.addEventListener("pointercancel", galEnd);
 document.getElementById("grid").addEventListener("keydown", e => { const ph = e.target.closest && e.target.closest(".ph"); if (ph && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); ph.click(); } });
 function card(p){
   const inC = CART[p.code];
   return `<article class="item" data-code="${p.code}">
       <div class="ph" data-i="${p.i}" role="button" tabindex="0" aria-label="عرض ${esc(label(p))}">
-        <div class="gal">${p.imgs.slice(0, 6).map((u, k) => `<img src="${u}_480x480.jpg" alt="${k ? "" : esc(label(p))}" loading="lazy" draggable="false" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${u}'">`).join("")}</div>
+        <div class="gal"><div class="strip">${p.imgs.slice(0, 6).map((u, k) => `<img src="${u}_480x480.jpg" alt="${k ? "" : esc(label(p))}" loading="lazy" draggable="false" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${u}'">`).join("")}</div></div>
         ${p.imgs.length > 1 ? `<span class="nav prev" data-nav="-1" aria-hidden="true">‹</span><span class="nav next" data-nav="1" aria-hidden="true">›</span><span class="dots">${p.imgs.slice(0, 6).map((_, k) => `<i${k ? "" : ' class="on"'}></i>`).join("")}</span>` : ""}
         <span class="code">${p.code}</span>
         ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور${p.colors.length > 1 ? " · " + p.colors.length + " ألوان" : ""}</span>` : ""}
@@ -472,56 +496,61 @@ function describe(p){
   s.push(n > 1 ? `متوفر ${n === 2 ? "بلونين" : "بـ" + n + " ألوان"}: ${p.colors.map(c => c.name).join("، ")}. المقاسات من S لـ XXL.` : n ? `اللون: ${p.colors[0].name}. المقاسات من S لـ XXL.` : "المقاسات من S لـ XXL.");
   return s.join(" ");
 }
-function showcase(){
-  const top = (arr, n) => arr.slice(0, n);
-  const byPop = a => a.slice().sort((x, y) => y.pop - x.pop || x.rank - y.rank);
-  const S = [
-    ["new", "وصل حديثًا", top(P.filter(p => p.isNew), 18), "new"],
-    ["pop", "الأكثر طلبًا", top(byPop(P.filter(p => p.pop > 0)), 18), "all"],
-    ["evening", "فساتين سهرة", top(byPop(P.filter(p => p.cat === "evening")), 18), "evening"],
-    ["sets", "أطقم", top(byPop(P.filter(p => p.cat === "sets")), 18), "sets"],
-    ["jackets", "جاكيتات", top(byPop(P.filter(p => p.cat === "jackets")), 18), "jackets"],
-  ].filter(s => s[2].length >= 6);
-  if (!S.length) return;
-  const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack");
-  const stage = document.getElementById("showStage");
-  const DUR = 7000, SPEED = 38; let i = 0, timer = null, pos = 0, last = 0, hold = 0, touched = 0;
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const busy = ms => { hold = performance.now() + ms; touched = performance.now(); };
-  function tick(ts){
-    const dt = last ? Math.min(64, ts - last) / 1000 : 0; last = ts;
-    const half = track.scrollWidth / 2;
-    if (ts < hold || document.hidden || reduce || stage.matches(":hover") && !matchMedia("(hover: none)").matches) pos = stage.scrollLeft;
-    else { pos += SPEED * dt; if (half && pos >= half) pos -= half; stage.scrollLeft = pos; }
-    if (half && stage.scrollLeft >= half) { stage.scrollLeft -= half; pos = stage.scrollLeft; }
-    if (half && stage.scrollLeft <= 0 && ts < hold) { stage.scrollLeft += half; pos = stage.scrollLeft; }
-    requestAnimationFrame(tick);
-  }
-  ["touchstart", "touchmove", "wheel"].forEach(ev => stage.addEventListener(ev, () => busy(2500), {passive: true}));
-  stage.addEventListener("touchend", () => busy(1800), {passive: true});
-  let drag = null, moved = false;
-  stage.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; drag = {x: e.clientX, s: stage.scrollLeft}; moved = false; busy(3000); });
-  addEventListener("pointermove", e => { if (!drag) return; const d = e.clientX - drag.x; if (Math.abs(d) > 5) { moved = true; stage.classList.add("drag"); } stage.scrollLeft = drag.s - d; busy(3000); });
-  addEventListener("pointerup", () => { if (drag) { drag = null; stage.classList.remove("drag"); busy(1500); } });
-  stage.addEventListener("click", e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
-  stage.addEventListener("dragstart", e => e.preventDefault());
+const SHOW = [["new","وصل حديثًا",[["NG-852014","جاكيت منقّط","Ha23513a924444805938883eeda55878co.jpg",1],["NG-682575","جاكيت جلد","Hd1273560f58b44f3a1c3424ad644eb95m.jpg",1],["NG-972792","فستان سهرة بدون أكتاف بالخرز اللامع – أسود","H2520e8b4bc8f4ec8a22aada8f66100f7n.jpg",1],["NG-997803","طقم تويد","H70c98a97779c473489ef3428dc775191R.jpg",1],["NG-944387","فستان بالترتر تول","He46d3db7075341b2afe0ced87a83c928T.jpg",1],["NG-838222","قميص كاروهات مقلّم","H2d31d935247048d7b11c03394acdde46y.jpg",1],["NG-655046","فستان سهرة – بنفسجي","H7a0a57dd72b04ae1b3083148aaff6a1bc.jpg",1],["NG-244048","فستان سهرة مطرّز بالورود – أبيض","H4e389f89ede94686838672198be98710g.jpg",1],["NG-001017","جاكيت دانتيل جينز","H2da46725b9f34574b65fbfc6a24f3bb84.jpg",1],["NG-427724","تنورة جينز","H1b46cd058e9e42d484a30be9007338efu.jpg",1],["NG-415882","فستان دانتيل","H554bf5f675c447139a469670805b7c72r.jpg",1],["NG-147446","بنطلون تول واسع","Hc1459801cf174a7c83709d9472c8a2a7T.jpg",1],["NG-842894","فستان بالورود","H374355bc49634c339b76ddcb54c9ec1bJ.jpg",1],["NG-446121","فستان بليسيه ماكسي","H18656385f9374c5a83847c3342ed2c6da.jpg",1],["NG-508342","فستان بالورود – ذهبي","He955f69c52464ba7ba2f5964ef3e25a5w.jpg",1],["NG-873682","فستان دانتيل ماكسي – أسود","Hcd2d9bc5722b461d81357fdb9e22aa78S.jpg",1],["NG-262432","قميص دانتيل بأكمام منفوخة","H6637a8ec9b014406b691aeebdc64929ec.jpg",1],["NG-574270","فستان تريكو","H951d9113a30b4be687ff17b47dedc2c01.jpg",1]],"new"],["pop","الأكثر طلبًا",[["NG-249058","فستان","Hdd652d372fd54ae6ad1cc45487976abdZ.jpg",0],["NG-139482","فستان بدون أكتاف ماكسي","H1f692553efd24224a52ec60c78fa271cl.jpg",0],["NG-045678","فستان بأكمام منفوخة","H654b7254cac444d5a3df4f5dad4674f3S.jpg",0],["NG-233950","فستان بالشراشيب ساتان – فضي","Hd2e275ecb49e497cba80bd3f8ee0a1b8c.jpg",0],["NG-001694","فستان ماكسي","H5412b6a13d74409faabddc9150848316x.jpg",0],["NG-241018","طقم – بنفسجي","H78e17df9628c4be685e94be1cf633d06n.jpg",0],["NG-556738","فستان بدون أكتاف ماكسي","H40a51cba78ed4aefbfe248f1f94e122fj.jpg",1],["NG-000673","فستان بالخرز اللامع بالشراشيب – زهري","H7ff0760ab24c42d7aa1f16ed3e35afae4.jpg",0],["NG-449413","طقم دانتيل مطرّز – بيج","H2ef6181c4fc643ffa66269c81fa45b6dG.jpg",0],["NG-996707","طقم بالخرز اللامع بالورود","Hcd445d7378cc43df979a0de98539c854O.jpg",0],["NG-789715","فستان رقبة هولتر شيفون – بنفسجي","H4dd3e3b24b9e42d79d5023eddbeb3c81u.jpg",0],["NG-638245","فستان سهرة رقبة هولتر بالخرز اللامع – أحمر","Ha87143f3f7df401797cc72a696769918p.jpg",0],["NG-644606","فستان بالترتر تريكو – زهري","H2573603ef7e44562b6dd5c13e19e03a4o.jpg",0],["NG-447869","فستان تريكو","Hac438a7238b9419b84f5970959d32710o.jpg",0],["NG-546655","طقم مقلّم","H3584ba26292346d29c8342f14202daa8Q.jpg",0],["NG-295473","طقم","Hcfa7031531fb4a90acf00293e9e55b63R.jpg",0],["NG-081121","فستان سهرة","H2181e01f91e846d881faad9a5d12e1be1.jpg",0],["NG-237951","فستان بالشراشيب تريكو – ذهبي","Heece906418754bb3b61542a706ef09b4a.jpg",0]],"all"],["evening","فساتين سهرة",[["NG-638245","فستان سهرة رقبة هولتر بالخرز اللامع – أحمر","Ha87143f3f7df401797cc72a696769918p.jpg",0],["NG-081121","فستان سهرة","H2181e01f91e846d881faad9a5d12e1be1.jpg",0],["NG-948665","فستان سهرة بالخرز اللامع ضيّق","H0671f04b8bba495ea8aea6fd585d28915.png",0],["NG-995297","فستان سهرة جلد تول","Hcd2040e5ed91451dbbd260214e40b79e1.jpg",0],["NG-463514","فستان سهرة","H775fac58a6734eb89dcae8ac2f2bc246B.jpg",0],["NG-154115","فستان سهرة","Hde92cabe7b1f4e768a988161b99be71d5.jpg",0],["NG-376907","فستان سهرة ضيّق","Haafda28c84af49ecbf4792c193eed6b9I.jpg",0],["NG-243533","فستان سهرة بليسيه ماكسي","H7bca277e7bc547cf95d600823f360d85o.jpg",0],["NG-407504","فستان سهرة بالورود تول","Hc96bb312328946c39276ac02063fcb80M.jpg",0],["NG-909028","فستان سهرة تريكو تول","H51101e71c6dd45e6a4b1c1bdd43abec1U.jpg",0],["NG-835384","فستان سهرة ساتان تويد – أسود","H94f0dce0a54a42168bcf5d4b519c4509F.jpg",0],["NG-818662","فستان سهرة بدون أكتاف دانتيل","H5eebd05b085a4a4ba9cc53e20582ab339.jpg",0],["NG-976580","فستان سهرة أوف شولدر بالترتر – فضي","Hb9439ba1db0c4b70b909ae4406fd57f6O.jpg",0],["NG-905481","فستان سهرة مطرّز بالورود","H5090b3f0828d412e94f0ccb3d727e38eu.jpg",0],["NG-991010","فستان سهرة بالترتر مطرّز","H415ad38e5b484ae593d787c688df66eeC.jpg",0],["NG-712030","فستان سهرة بالترتر مطرّز – أصفر","H7f9883cb92bf42a3911e19a92608f39fS.jpg",0],["NG-948748","فستان سهرة بالورود تول – أحمر","Hb084ad08ee454429a9744b068c295adav.jpg",0],["NG-014045","فستان سهرة بالخرز اللامع تول","H1df2103b2cb749d8ada77d1aec1768dea.jpg",0]],"evening"],["sets","أطقم",[["NG-241018","طقم – بنفسجي","H78e17df9628c4be685e94be1cf633d06n.jpg",0],["NG-449413","طقم دانتيل مطرّز – بيج","H2ef6181c4fc643ffa66269c81fa45b6dG.jpg",0],["NG-996707","طقم بالخرز اللامع بالورود","Hcd445d7378cc43df979a0de98539c854O.jpg",0],["NG-546655","طقم مقلّم","H3584ba26292346d29c8342f14202daa8Q.jpg",0],["NG-295473","طقم","Hcfa7031531fb4a90acf00293e9e55b63R.jpg",0],["NG-443765","طقم بكاب","Hfc972c2cc0554e8ba1b24fe8685320c5f.jpg",0],["NG-279834","طقم أوف شولدر ساتان – أسود","Hbee3a5feabdc4ea39f0175d801607b32J.jpg",0],["NG-764581","طقم","Hcf24ae77fd714762be8fa32fa28444df0.jpg",0],["NG-933989","طقم تريكو","Hd97174fdf3e641779ed224f7dd4e6fb48.jpg",0],["NG-433190","طقم بالخرز اللامع تريكو","H1d2ffa9f37924846a4bffeadc2bb7142A.png",0],["NG-116752","طقم بالخرز اللامع تريكو","H91a8bd62b45c46e385c6b80570ac65dek.png",0],["NG-409004","طقم دانتيل تريكو","Ha6e8d70aa5fb4d96a1c01c08343e3dcbk.jpg",0],["NG-212805","جمبسوت","H0df2419e3fce407db2f14e87e78e473de.jpg",0],["NG-586981","طقم تريكو مقلّم – أزرق","H7c8cf13662de4af38e1d37a4e6d29c1d7.jpg",0],["NG-771034","طقم بالخرز اللامع تريكو","Hb60a9bd5b8de42b8b84b2597301dadcal.jpg",0],["NG-540536","طقم أوف شولدر بدون أكتاف","Hed996ebfe3274f3588f6309299bf497fe.jpg",1],["NG-510984","طقم تريكو","H13f91cf536234822a690df4135743fb7G.jpg",0],["NG-086766","طقم بالخرز اللامع تريكو","Hd6c0176ced6e456fa9b3982900da1e6e5.png",0]],"sets"],["jackets","جاكيتات",[["NG-753578","جاكيت بالخرز اللامع","H79dedf15d34449c7bd662fe88cd6023eI.jpg",0],["NG-206336","جاكيت جلد تول","Hd577851580a74099beec4893d84c0b58k.jpg",0],["NG-331515","جاكيت دانتيل","Hfb7c4bff99fc4b379169cceef3c8fd73m.jpg",0],["NG-884402","جاكيت تريكو","Hbfe77cdc1e7a4bbf9b7d3ad952038a12j.jpg",0],["NG-658162","جاكيت بالترتر","Hea05f533b27e4d2fb4efaf7da2cf2555h.jpg",0],["NG-835645","جاكيت جينز","Hb54b9ac65bb74aaf82e6c5a2e8b42ad7i.jpg",0],["NG-519917","جاكيت","H4ac4ced18834484b801a80dd57ccff90S.jpg",0],["NG-969594","جاكيت","Hd1c256b3fce740a89f06f4743127a39fy.jpg",0],["NG-031210","جاكيت بالورود","H7dca109e165346c9b862a7a51c2268472.jpg",0],["NG-501132","جاكيت","Hb5c186a72e0348ceac1e64300977de1dD.jpg",0],["NG-466769","جاكيت بالورود تول","H475cdd702161470c9179206f210ca6c20.jpg",0],["NG-642472","جاكيت جينز","H6503b5c73fd2439fbda64bd8fcf9553d2.jpg",0],["NG-186454","بليزر بالترتر بالخرز اللامع","H6abd43b0e08f4303aa9234cd611329f6G.jpg",1],["NG-635155","جاكيت بالخرز اللامع","Hb639408eb00347afb8116be8485cf561B.jpg",0],["NG-660424","جاكيت","H6a54fb91d31e422eacb9901492b5f9ba1.jpg",0],["NG-507990","جاكيت","H52edf695ab3849029b9bf6b845a6a970W.jpg",0],["NG-542416","جاكيت","H7f62b810443e4d9a860d4c9b3195d7903.jpg",0],["NG-993506","جاكيت","Hb11d3c904070485bab35e48ed4bf2cbdx.jpg",0]],"jackets"]];
+let pendingOpen = null;
+function openByCode(code){ const p = P.find(x => x.code === code); if (p) openItem(p); else pendingOpen = code; }
+(function showcase(){
+  const S = SHOW; if (!S.length) return;
+  const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack"), stage = document.getElementById("showStage");
+  const DUR = 7000, SPEED = 40, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, mouseHover = matchMedia("(hover: hover)").matches;
+  let i = 0, x = 0, v = 0, last = 0, hold = 0, touched = 0, drag = null, moved = false, hovering = false;
+  const esc2 = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const card = it => `<a class="sc" href="#" data-code="${it[0]}" draggable="false"><span class="ph"><img src="${IMG}${it[2]}_480x480.jpg" alt="${esc2(it[1])}" draggable="false" referrerpolicy="no-referrer">${it[3] ? `<span class="b">جديد</span>` : ""}</span><span class="c">${it[0]}</span><span class="n">${esc2(it[1])}</span></a>`;
   tabs.innerHTML = S.map((s, k) => `<button class="showTab" role="tab" type="button" data-k="${k}" aria-selected="false">${s[1]}<i></i></button>`).join("");
   sec.style.setProperty("--dur", DUR / 1000 + "s");
-  const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
+  const half = () => track.scrollWidth / 2;
+  const wrap = () => { const h = half(); if (h) { x %= h; if (x < 0) x += h; } };
+  const apply = () => { track.style.transform = `translate3d(${-x}px,0,0)`; };
   function render(k, animate){
     i = k; const s = S[k];
     tabs.querySelectorAll(".showTab").forEach((b, j) => { b.setAttribute("aria-selected", j === k); const bar = b.querySelector("i"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
-    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; stage.scrollLeft = 0; pos = 0; track.classList.remove("fade"); };
-    if (animate) { track.classList.add("fade"); setTimeout(put, 450); } else put();
+    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; x = 0; v = 0; apply(); track.classList.remove("fade"); };
+    if (animate) { track.classList.add("fade"); setTimeout(put, 400); } else put();
   }
-  function play(){ clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !sec.matches(":hover") && performance.now() - touched > 12000) render((i + 1) % S.length, true); }, DUR); }
-  tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); play(); } };
-  track.onclick = e => { const b = e.target.closest(".sc"); if (b) openItem(P[+b.dataset.i]); };
+  function tick(ts){
+    const dt = last ? Math.min(50, ts - last) / 1000 : 0; last = ts;
+    if (!drag) {
+      if (Math.abs(v) > 5) { x += v * dt; v *= Math.pow(0.04, dt); }            // momentum after a swipe
+      else if (ts > hold && !document.hidden && !reduce && !hovering) x += SPEED * dt;
+      wrap(); apply();
+    }
+    requestAnimationFrame(tick);
+  }
+  stage.addEventListener("pointerdown", e => {
+    drag = {x0: e.clientX, y0: e.clientY, s: x, t: performance.now(), lx: e.clientX, id: e.pointerId, axis: null}; moved = false; v = 0;
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+    if (!drag.axis) { if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return; drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y"; if (drag.axis === "x") { try { stage.setPointerCapture(e.pointerId); } catch (_) {} stage.classList.add("drag"); } }
+    if (drag.axis !== "x") return;
+    moved = true; const now = performance.now(), ddt = Math.max(1, now - drag.t);
+    v = -(e.clientX - drag.lx) / ddt * 1000; drag.lx = e.clientX; drag.t = now;
+    x = drag.s - dx; wrap(); apply();
+  });
+  const end = () => { if (!drag) return; if (drag.axis !== "x") v = 0; drag = null; stage.classList.remove("drag"); hold = performance.now() + 1500; touched = performance.now(); };
+  stage.addEventListener("pointerup", end); stage.addEventListener("pointercancel", end);
+  stage.addEventListener("wheel", e => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { e.preventDefault(); x += e.deltaX; wrap(); apply(); hold = performance.now() + 1500; touched = performance.now(); } }, {passive: false});
+  if (mouseHover) { sec.addEventListener("mouseenter", () => hovering = true); sec.addEventListener("mouseleave", () => hovering = false); }
+  track.addEventListener("click", e => { e.preventDefault(); if (moved) { moved = false; return; } const a = e.target.closest(".sc"); if (a) openByCode(a.dataset.code); });
+  track.addEventListener("dragstart", e => e.preventDefault());
+  tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); touched = performance.now(); } };
+  setInterval(() => { if (!document.hidden && !hovering && !drag && performance.now() - touched > 12000) render((i + 1) % S.length, true); }, DUR);
   document.getElementById("showAll").onclick = () => { const k = S[i][3]; const c = document.querySelector(`.chip[data-k="${k}"]`); if (c) c.click();
     if (S[i][0] === "pop") { document.getElementById("sort").value = "pop"; filter(); }
     document.getElementById("chips").scrollIntoView({behavior: "smooth"}); };
-  sec.hidden = false; render(0, false); play(); requestAnimationFrame(tick);
-}
+  sec.hidden = false; render(0, false); requestAnimationFrame(tick);
+})();
 document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
 try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
 let qt;
@@ -583,8 +612,9 @@ document.getElementById("qtable").addEventListener("click", e => {
   if (k >= 0) show(k); else { const im = document.getElementById("lbimg"); im.src = u + "_960x960.jpg"; }
 });
 document.getElementById("grid").addEventListener("click", e => {
+  if (galSwiped) { galSwiped = false; return; }
   const nv = e.target.closest("[data-nav]");
-  if (nv) { const g = nv.parentElement.querySelector(".gal"); g.scrollBy({left: +nv.dataset.nav * g.clientWidth, behavior: "smooth"}); return; }
+  if (nv) { const ph = nv.closest(".ph"); galGo(ph, (+ph.dataset.k || 0) + +nv.dataset.nav); return; }
   const b = e.target.closest(".ph, .add"); if (!b) return;
   openItem(P[+b.dataset.i]);
 });
@@ -710,14 +740,14 @@ document.getElementById("clearCart").onclick = () => {
   else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
 };
 
-fetch("products.json?v=1794326038").then(r => r.json()).then(d => {
+fetch("products.json?v=1794326200").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
     pop: +a[6] || 0, f: a[10] || "", colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
   const pops = P.map(p => p.pop).filter(Boolean).sort((a, b) => b - a), popCut = pops[Math.floor(pops.length * 0.1)] || Infinity;
   P.forEach((p, i) => { p.i = i; p.isNew = !!p.added && p.added >= cutoff; p.isPop = p.pop > 0 && p.pop >= popCut; });
   document.getElementById("updated").textContent = d.updated;
-  chips(); filter(); saveCart(); showcase();
+  chips(); filter(); saveCart(); if (pendingOpen) { const c = pendingOpen; pendingOpen = null; openByCode(c); }
 }).catch(() => {
   document.getElementById("grid").innerHTML = '<p class="note">تعذّر تحميل القطع. حدّثي الصفحة أو راسلينا على واتساب.</p>';
 });
