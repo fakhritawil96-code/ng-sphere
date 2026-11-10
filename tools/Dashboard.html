@@ -170,6 +170,9 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
   <div class="filters">
     <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="ابحث باسم المحل، المدينة، الرقم أو كود موديل" autocomplete="off"></label>
+    <select class="f" id="fStatusSel" aria-label="حالة الطلب">
+      <option value="">كل الحالات</option><option value="follow">بحاجة متابعة</option><option value="new">جديد</option><option value="waiting">بانتظار التاجر</option><option value="confirmed">تم الطلب</option><option value="processing">قيد التنفيذ</option><option value="delivered">تم التسليم</option><option value="cancelled">ملغي</option>
+    </select>
     <select class="f" id="fReplied" aria-label="الرد">
       <option value="">كل الطلبات</option><option value="no">لسا ما رديت</option><option value="yes">رديت</option>
     </select>
@@ -263,19 +266,20 @@ const totals = items => ({models: items.length, pieces: items.reduce((a, i) => a
 // ---------- rendering ----------
 function renderTiles(){
   const c = Object.fromEntries(STATUSES.map(s => [s[0], 0]));
-  ORDERS.forEach(o => c[o.status] = (c[o.status] || 0) + 1);
-  const follow = ORDERS.filter(needsFollow).length;
-  const tiles = [["", "كل الطلبات", ORDERS.length, "var(--ink)"], ["follow", "بحاجة متابعة", follow, "var(--s-new)"],
+  const B = baseFiltered();
+  B.forEach(o => c[o.status] = (c[o.status] || 0) + 1);
+  const follow = B.filter(needsFollow).length;
+  $("fStatusSel").value = fStatus;
+  const tiles = [["", "كل الطلبات", B.length, "var(--ink)"], ["follow", "بحاجة متابعة", follow, "var(--s-new)"],
     ...STATUSES.map(([k, n]) => [k, n, c[k], `var(--s-${{new:"new",waiting:"wait",confirmed:"conf",processing:"proc",delivered:"done",cancelled:"cxl"}[k]})`])];
   $("tiles").innerHTML = tiles.map(([k, n, v, col]) => `<button class="tile${k === "follow" && v ? " alert" : ""}" data-k="${k}" aria-pressed="${fStatus === k}" type="button"><span class="n">${v}</span><span class="l"><i style="background:${col}"></i>${n}</span></button>`).join("");
   const cities = [...new Set(ORDERS.map(o => (o.city || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar"));
   const sel = $("fCity"), v = sel.value;
   sel.innerHTML = `<option value="">كل المدن</option>` + cities.map(c => `<option${c === v ? " selected" : ""}>${esc(c)}</option>`).join("");
 }
-function filtered(){
-  const q = $("q").value.trim().toLowerCase(), rep = $("fReplied").value, city = $("fCity").value, when = +$("fWhen").value || 0, sort = $("fSort").value;
-  let a = ORDERS.filter(o => {
-    if (fStatus === "follow" ? !needsFollow(o) : (fStatus && o.status !== fStatus)) return false;
+function baseFiltered(){
+  const q = $("q").value.trim().toLowerCase(), rep = $("fReplied").value, city = $("fCity").value, when = +$("fWhen").value || 0;
+  return ORDERS.filter(o => {
     if (rep === "yes" && !o.replied) return false;
     if (rep === "no" && o.replied) return false;
     if (city && (o.city || "").trim() !== city) return false;
@@ -286,6 +290,10 @@ function filtered(){
     }
     return true;
   });
+}
+function filtered(){
+  const sort = $("fSort").value;
+  const a = baseFiltered().filter(o => fStatus === "follow" ? needsFollow(o) : (!fStatus || o.status === fStatus));
   const key = {new: o => -new Date(o.receivedAt), old: o => +new Date(o.receivedAt), follow: o => o.followUp || "9999", pieces: o => -(o.pieces || 0)}[sort];
   return a.sort((x, y) => (key(x) > key(y) ? 1 : key(x) < key(y) ? -1 : 0));
 }
@@ -328,7 +336,7 @@ function renderList(){
     </article>`;
   }).join("");
 }
-function resetFilters(){ fStatus = ""; $("q").value = ""; $("fReplied").value = ""; $("fCity").value = ""; $("fWhen").value = ""; renderList(); }
+function resetFilters(){ fStatus = ""; $("fStatusSel").value = ""; $("q").value = ""; $("fReplied").value = ""; $("fCity").value = ""; $("fWhen").value = ""; renderList(); }
 
 // ---------- server ----------
 const api = (fn, ...args) => new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));
@@ -420,6 +428,7 @@ $("refresh").onclick = () => load();
 $("shX").onclick = () => $("sheet").close();
 $("sheet").addEventListener("click", e => { if (e.target === $("sheet")) $("sheet").close(); });
 $("tiles").addEventListener("click", e => { const t = e.target.closest(".tile"); if (!t) return; fStatus = fStatus === t.dataset.k ? "" : t.dataset.k; renderList(); });
+$("fStatusSel").addEventListener("change", e => { fStatus = e.target.value; renderList(); });
 ["q", "fReplied", "fCity", "fWhen", "fSort"].forEach(id => $(id).addEventListener(id === "q" ? "input" : "change", renderList));
 $("list").addEventListener("change", e => {
   if (e.target.dataset.reply) setReplied(e.target.dataset.reply, e.target.checked);
