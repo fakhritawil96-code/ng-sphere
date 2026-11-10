@@ -110,6 +110,7 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 .lb img{width:100%;max-height:72vh;object-fit:contain;background:var(--rose-soft)}
 .lb .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px}
 .lb .x{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:14px;z-index:30;width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:var(--ivory);font-size:26px;line-height:1;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3);display:grid;place-items:center}
+@media (min-width:700px){.lb .x{left:max(14px,calc(50vw - 280px - 58px));top:24px;width:48px;height:48px}}
 .lb .order.back{background:none;border:1px solid var(--line);color:var(--ink)}
 .lb .order{background:var(--ink);color:var(--ivory)}
 .stage{position:relative}
@@ -755,7 +756,7 @@ document.getElementById("clearCart").onclick = () => {
   else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
 };
 
-fetch("products.json?v=1794326509").then(r => r.json()).then(d => {
+fetch("products.json?v=1794326586").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
     pop: +a[6] || 0, f: a[10] || "", colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
