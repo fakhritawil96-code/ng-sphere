@@ -22,6 +22,7 @@ CONFIG = {
     "instagram": "ng_sphere1",
     "whatsapp": "962796199881",
     "whatsapp_display": "0796 199 881",
+    "orders_url": "",  # Apps Script web app /exec URL
     "usd_to_jod": 0.709,
 }
 
@@ -221,6 +222,7 @@ tpl = open(os.path.join(HERE, "template.html"), encoding="utf-8").read()
 out = (tpl.replace("__WA__", CONFIG["whatsapp"])
           .replace("__WA_DISPLAY__", CONFIG["whatsapp_display"])
           .replace("__IG__", CONFIG["instagram"])
+          .replace("__ORDERS_URL__", CONFIG["orders_url"])
           .replace("__VER__", str(int(datetime.datetime.now().timestamp()))))
 open("index.html", "w", encoding="utf-8").write(out)
 

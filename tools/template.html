@@ -150,6 +150,10 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .crow .acts{display:flex;flex-direction:column;gap:2px;align-items:end}
 .cartForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:12px 18px;border-top:1px solid var(--line)}
 .cartFoot{padding:12px 18px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
+.cartDone{padding:28px 22px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.cartDone h3{margin:0;font-size:20px;font-weight:600}
+.cartDone p{margin:0;color:var(--muted)}
+.cartDone b{color:var(--ink)}
 .cartFoot .sum{font-size:14px;color:var(--muted)}
 .cartFoot .sum b{color:var(--ink)}
 .order.big{background:var(--ink);color:var(--ivory);padding:12px;font-size:15px}
@@ -245,14 +249,22 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   <div class="cartList" id="cartList"></div>
   <div class="cartForm">
     <label class="fld"><span>اسم المحل</span><input id="shop" type="text" autocomplete="organization"></label>
+    <label class="fld"><span>رقم واتساب المحل</span><input id="phone" type="tel" dir="ltr" autocomplete="tel" placeholder="07xxxxxxxx"></label>
     <label class="fld"><span>المدينة</span><input id="city" type="text" autocomplete="address-level2"></label>
     <label class="fld"><span>ملاحظات على الطلب</span><input id="onote" type="text" autocomplete="off" placeholder="اختياري"></label>
   </div>
   <div class="cartFoot">
     <div class="sum"><b id="ctModels">0</b> موديل · <b id="ctPieces">0</b> قطعة</div>
-    <a class="order big" id="sendWa" target="_blank" rel="noopener">أرسل الطلب على واتساب</a>
-    <p class="hint" id="sentNote" hidden>إذا ما انفتح واتساب، ابعت رقم <span class="ltr">__WA_DISPLAY__</span> رسالة فيها أكواد الموديلات والكميات.</p>
+    <p class="hint" id="formHint" hidden></p>
+    <button class="order big" id="submitOrder" type="button">أرسل الطلب</button>
     <button class="linkbtn" id="clearCart" type="button">إفراغ الطلب</button>
+  </div>
+  <div class="cartDone" id="cartDone" hidden>
+    <h3>وصلنا طلبك</h3>
+    <p>رقم الطلب: <b class="ltr" id="doneId"></b></p>
+    <p>منرد عليك على واتساب بعرض السعر ومدة التوصيل. إذا بدك تتابع معنا هلق، ابعتلنا رسالة:</p>
+    <a class="order big" id="doneWa" target="_blank" rel="noopener">تابع على واتساب</a>
+    <button class="linkbtn" id="doneClose" type="button">رجوع للموديلات</button>
   </div>
 </dialog>
 
@@ -407,11 +419,9 @@ function renderCart(){
       <div><div class="t">${esc(c.name)}</div><div class="s"><span class="ltr">${k}</span> · <span class="ltr">${sz}</span>${c.note ? " · " + esc(c.note) : ""}</div></div>
       <div class="acts"><button class="linkbtn" data-edit="${k}" type="button">تعديل</button><button class="linkbtn" data-del="${k}" type="button">شيل</button></div></div>`;
   }).join("") : '<p class="note">طلبك فاضي. افتح أي موديل واضغط «أضف للطلب».</p>';
-  const send = document.getElementById("sendWa");
-  send.setAttribute("aria-disabled", codes.length ? "false" : "true");
-  send.href = codes.length ? "https://wa.me/" + WA + "?text=" + encodeURIComponent(orderText()) : "#";
+  document.getElementById("submitOrder").disabled = !codes.length;
 }
-function orderText(){
+function orderText(id){
   const shop = document.getElementById("shop").value.trim(), city = document.getElementById("city").value.trim(), on = document.getElementById("onote").value.trim();
   const codes = Object.keys(CART);
   const lines = codes.map((k, i) => {
@@ -419,13 +429,13 @@ function orderText(){
     return `${i + 1}) ${k} – ${c.name}\n   ${sz} (المجموع ${pieces(c)})${c.note ? "\n   ملاحظة: " + c.note : ""}`;
   });
   const total = codes.reduce((a, k) => a + pieces(CART[k]), 0);
-  return `مرحبا NG SPHERE، طلب جملة:\n${shop ? "المحل: " + shop + "\n" : ""}${city ? "المدينة: " + city + "\n" : ""}\n${lines.join("\n")}\n\nالمجموع: ${codes.length} موديل، ${total} قطعة${on ? "\nملاحظات: " + on : ""}\n\nبدي عرض سعر ومدة التوصيل.`;
+  return `مرحبا NG SPHERE، طلب جملة${id ? " رقم " + id : ""}:\n${shop ? "المحل: " + shop + "\n" : ""}${city ? "المدينة: " + city + "\n" : ""}\n${lines.join("\n")}\n\nالمجموع: ${codes.length} موديل، ${total} قطعة${on ? "\nملاحظات: " + on : ""}\n\nبدي عرض سعر ومدة التوصيل.`;
 }
 const cartDlg = document.getElementById("cart");
 document.getElementById("cbOpen").onclick = () => { renderCart(); cartDlg.showModal(); };
 document.getElementById("cartx").onclick = () => cartDlg.close();
 cartDlg.addEventListener("click", e => { if (e.target === cartDlg) cartDlg.close(); });
-["shop","city","onote"].forEach(id => { const el = document.getElementById(id);
+["shop","phone","city","onote"].forEach(id => { const el = document.getElementById(id);
   try { el.value = localStorage.getItem("ng_" + id) || ""; } catch(e) {}
   el.addEventListener("input", () => { try { localStorage.setItem("ng_" + id, el.value); } catch(e) {} renderCart(); }); });
 document.getElementById("cartList").addEventListener("click", e => {
@@ -433,7 +443,46 @@ document.getElementById("cartList").addEventListener("click", e => {
   if (d) { delete CART[d.dataset.del]; saveCart(); refreshCard(d.dataset.del); }
   if (ed) { const p = P.find(x => x.code === ed.dataset.edit); if (p) { cartDlg.close(); openItem(p); } }
 });
-document.getElementById("sendWa").addEventListener("click", () => { document.getElementById("sentNote").hidden = false; });
+const ORDERS_URL = "__ORDERS_URL__";
+const newId = () => "NG-O-" + Date.now().toString(36).toUpperCase().slice(-5) + Math.random().toString(36).slice(2, 4).toUpperCase();
+document.getElementById("submitOrder").onclick = async () => {
+  const shop = document.getElementById("shop").value.trim(), phone = document.getElementById("phone").value.trim();
+  const hint = document.getElementById("formHint");
+  const digits = phone.replace(/\D/g, "");
+  if (!shop || digits.length < 9) { hint.textContent = !shop ? "اكتب اسم المحل." : "اكتب رقم واتساب المحل حتى نقدر نرد عليك."; hint.hidden = false; return; }
+  hint.hidden = true;
+  const btn = document.getElementById("submitOrder"); btn.disabled = true; btn.textContent = "عم نبعت الطلب…";
+  const id = newId();
+  const order = {id, shop, phone, city: document.getElementById("city").value.trim(), notes: document.getElementById("onote").value.trim(),
+    items: Object.keys(CART).map(k => ({code: k, name: CART[k].name, note: CART[k].note || "", sizes: CART[k].q}))};
+  const waText = orderText(id);
+  let ok = false;
+  if (!ORDERS_URL) {
+    btn.disabled = false; btn.textContent = "أرسل الطلب";
+    hint.innerHTML = '<a target="_blank" rel="noopener" href="https://wa.me/' + WA + '?text=' + encodeURIComponent(waText) + '">اضغط هون لإرسال الطلب على واتساب</a>';
+    hint.hidden = false; return;
+  }
+  try {
+    const r = await fetch(ORDERS_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "create", order})});
+    const j = await r.json(); ok = !!j.ok;
+  } catch (e) { ok = false; }
+  btn.disabled = false; btn.textContent = "أرسل الطلب";
+  if (!ok) {
+    hint.innerHTML = 'ما وصل الطلب بسبب مشكلة بالاتصال. جرّب كمان مرة، أو <a target="_blank" rel="noopener" href="https://wa.me/' + WA + '?text=' + encodeURIComponent(waText) + '">ابعته على واتساب</a>.';
+    hint.hidden = false; return;
+  }
+  document.getElementById("doneId").textContent = id;
+  document.getElementById("doneWa").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(waText);
+  const ks = Object.keys(CART); CART = {}; saveCart(); ks.forEach(refreshCard);
+  try { localStorage.setItem("ng_onote", ""); } catch (e) {} document.getElementById("onote").value = "";
+  document.querySelector(".cartList").hidden = document.querySelector(".cartForm").hidden = document.querySelector(".cartFoot").hidden = true;
+  document.getElementById("cartDone").hidden = false;
+};
+document.getElementById("doneClose").onclick = () => cartDlg.close();
+cartDlg.addEventListener("close", () => {
+  document.querySelector(".cartList").hidden = document.querySelector(".cartForm").hidden = document.querySelector(".cartFoot").hidden = false;
+  document.getElementById("cartDone").hidden = true;
+});
 document.getElementById("clearCart").onclick = () => {
   const b = document.getElementById("clearCart");
   if (b.dataset.armed) { const ks = Object.keys(CART); CART = {}; saveCart(); ks.forEach(refreshCard); b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }
