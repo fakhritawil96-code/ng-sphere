@@ -150,6 +150,28 @@ def jod_price(p):
         return None
     return int(round((usd + shipping) * (1 + margin) * CONFIG["usd_to_jod"]))
 
+
+# ---------- description features (letters decoded into Arabic sentences on the site) ----------
+FEATS = [  # (letter, keywords)
+    ("a", ("mermaid", "fishtail", "fish tail")), ("b", ("bodycon", "bandage", "slim fit", "slim-fit", "tight")), ("c", ("a-line", "a line", "a- line")),
+    ("d", ("wide leg", "wide-leg", "loose")), ("e", ("off-shoulder", "off shoulder")), ("f", ("one-shoulder", "one shoulder")), ("g", ("halter",)),
+    ("h", ("strapless", "tube top", "tube-top")), ("i", ("v-neck", "v neck", "v-neckline", "deep v")), ("j", ("square neck", "square collar")),
+    ("k", ("high neck", "stand collar", "turtleneck", "mock neck")), ("l", ("long sleeve", "long-sleeve")), ("m", ("short sleeve", "short-sleeve")),
+    ("n", ("sleeveless", "spaghetti", "suspender", "strap dress", "camisole")), ("o", ("puff sleeve", "puff-sleeve", "bubble sleeve", "lantern")),
+    ("p", ("satin", "silk")), ("q", ("chiffon",)), ("r", ("velvet",)), ("s", ("tweed",)), ("t", ("leather", " pu ")), ("u", ("denim", "jeans")),
+    ("v", ("linen",)), ("w", ("knit",)), ("x", ("tulle", "mesh", "gauze")), ("y", ("lace",)), ("z", ("sequin",)), ("A", ("wool", "woolen")),
+    ("B", ("cotton",)), ("C", ("rhinestone", "diamond", "bead", "crystal", "studded", "pearl")), ("D", ("embroider",)), ("E", ("tassel", "fringe")),
+    ("F", ("feather",)), ("G", ("3d flower", "3d floral", "three-dimensional flower", "flower", "floral", "rose")), ("H", ("pleat",)),
+    ("I", ("bow",)), ("J", ("belt", "waistband")), ("K", ("slit",)), ("L", ("ruffle", "flounce")), ("M", ("button", "double-breasted", "double breasted")),
+    ("N", ("mini",)), ("O", ("midi",)), ("P", ("maxi", "floor length", "floor-length", "long dress", "long gown", "full length")),
+    ("Q", ("evening", "party", "banquet", "gala", "prom", "cocktail", "formal")), ("R", ("wedding", "bridesmaid", "bride")),
+    ("S", ("casual", "daily", "street")), ("T", ("office", "commut", "work", "business")), ("U", ("summer",)), ("V", ("winter", "autumn", "fall ")),
+    ("W", ("backless", "open back")), ("X", ("print", "leopard", "polka", "plaid", "stripe", "check")), ("Y", ("vintage", "retro")), ("Z", ("plus size", "oversize", "oversized")),
+]
+def feats(title):
+    t = " " + title.lower().replace("&#39;", "'") + " "
+    return "".join(L for L, keys in FEATS if any(k in t for k in keys))
+
 # ---------- stable codes ----------
 def load_public():
     try:
@@ -198,7 +220,7 @@ def to_item(row, used, keep_code=None, added=None):
         n = color_name(hexv)
         if n and n not in [c[1] for c in cols]: cols.append([hexv, n, img or ""])
     pop = sold * 3 + orders
-    return [code, name, cat, color, jod_price(price), imgs[:8], pop, cols, added or TODAY, rank]
+    return [code, name, cat, color, jod_price(price), imgs[:8], pop, cols, added or TODAY, rank, feats(title)]
 
 old = load_public()
 old_by_img = {it[5][0]: it for it in old if it[5]}

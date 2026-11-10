@@ -185,13 +185,30 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .tblWrap th,.tblWrap td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
 .tblWrap th{color:var(--muted);font-weight:500}
 .tblWrap td:first-child{font-weight:600}
-.reels{padding:8px 0 22px}
-.reelsHead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
-.reelsHead h2{font-size:18px;font-weight:600;margin:0}
-.reelRow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}
-.reel{margin:0;flex:0 0 auto;width:min(44vw,240px);scroll-snap-align:start}
-.reel video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:6px;background:var(--rose-soft);cursor:pointer}
-.reel figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.show{padding:6px 0 26px;overflow:hidden}
+.showHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.showTabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.showTabs::-webkit-scrollbar{display:none}
+.showTab{position:relative;border:0;background:none;font:inherit;font-size:15px;color:var(--muted);padding:6px 2px 10px;margin-inline-end:16px;cursor:pointer;white-space:nowrap}
+.showTab[aria-selected="true"]{color:var(--ink);font-weight:600}
+.showTab i{position:absolute;inset-inline-start:0;bottom:0;height:2px;width:0;background:var(--rose)}
+.showTab[aria-selected="true"] i{animation:showbar var(--dur,7s) linear forwards}
+@keyframes showbar{to{width:100%}}
+.showStage{position:relative;direction:ltr;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.showTrack{display:flex;gap:14px;width:max-content;animation:showmove var(--speed,60s) linear infinite;transition:opacity .45s ease}
+.showTrack.fade{opacity:0}
+.show:hover .showTrack,.showTrack:focus-within{animation-play-state:paused}
+@keyframes showmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.sc{flex:0 0 auto;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
+.sc .ph{display:block;aspect-ratio:3/4;overflow:hidden;border-radius:4px;background:var(--rose-soft)}
+.sc img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transition:transform .6s ease}
+.sc:hover img{transform:scale(1.05)}
+.sc .c{display:block;font-family:var(--serif);font-size:13px;color:var(--rose);margin-top:8px;direction:ltr;text-align:right}
+.sc .n{display:block;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc .b{position:absolute;margin:8px;padding:2px 8px;border-radius:999px;font-size:11px;background:var(--ivory);color:var(--ink)}
+.sc .ph{position:relative}
+@media (prefers-reduced-motion:reduce){.showTrack{animation:none}.showStage{overflow-x:auto}}
+.desc{font-size:14.5px;line-height:1.85;color:var(--ink);margin:10px 0 4px;opacity:.88}
 .termsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:880px;margin:22px auto 0}
 .term{border:1px solid var(--line);background:var(--paper);padding:14px 16px;border-radius:2px;display:flex;flex-direction:column;gap:2px}
 .term b{font-size:16px;font-weight:600}
@@ -220,14 +237,12 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   </div>
 </header>
 
-<section class="reels" aria-label="ريلز">
-  <div class="wrap">
-    <div class="reelsHead"><h2>ريلز هالأسبوع</h2><button class="linkbtn" type="button" id="reelsNew">تصفّح كل اللي وصل حديثًا</button></div>
-    <div class="reelRow">
-      <figure class="reel"><video src="reels/new-dresses.mp4?v=__VER__" poster="reels/new-dresses.jpg?v=__VER__" muted loop playsinline preload="none" aria-label="ريل: وصل حديثًا، فساتين ومناسبات"></video><figcaption>وصل حديثًا · فساتين ومناسبات</figcaption></figure>
-      <figure class="reel"><video src="reels/new-sets.mp4?v=__VER__" poster="reels/new-sets.jpg?v=__VER__" muted loop playsinline preload="none" aria-label="ريل: وصل حديثًا، أطقم وجاكيتات وكاجوال"></video><figcaption>وصل حديثًا · أطقم وجاكيتات</figcaption></figure>
-    </div>
+<section class="show" id="show" aria-label="معرض متحرك" hidden>
+  <div class="showHead wrap">
+    <div class="showTabs" id="showTabs" role="tablist"></div>
+    <button class="linkbtn" type="button" id="showAll">تصفّح القسم كامل</button>
   </div>
+  <div class="showStage" id="showStage"><div class="showTrack" id="showTrack"></div></div>
 </section>
 
 <nav class="rail" aria-label="الأقسام"><div class="wrap" id="chips"></div></nav>
@@ -280,6 +295,7 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   <div class="body">
     <div class="nm" id="lbname"></div>
     <div class="sub"><span id="lbcode" class="ltr"></span><span id="lbin" class="incart" hidden>بطلبك</span></div>
+    <p class="desc" id="lbdesc"></p>
     <div class="qhead"><span>الكمية من كل لون ومقاس</span><button class="linkbtn" id="sizeGuideBtn" type="button">دليل المقاسات</button></div>
     <div class="qtable" id="qtable"></div>
     <label class="fld"><span>ملاحظة (اختياري)</span><input id="lbnote" type="text" autocomplete="off" placeholder="مثلًا: لون مش موجود بالصور"></label>
@@ -415,15 +431,60 @@ document.getElementById("moreBtn").onclick = more;
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && shownN < list.length) more(); }, {rootMargin: "800px"}).observe(document.getElementById("moreBtn"));
 }
-(() => {
-  const vids = [...document.querySelectorAll(".reel video")];
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause(); }), {threshold: .6});
-    vids.forEach(v => io.observe(v));
+const FX = {a:"بقصّة حورية بتبرز القوام", b:"قصّة ضيقة على الجسم", c:"قصّة A بتنزل بنعومة", d:"قصّة واسعة ومريحة",
+  e:"بأكتاف مكشوفة (أوف شولدر)", f:"على كتف واحد", g:"برقبة هولتر", h:"بدون أكتاف", i:"بياقة V", j:"بياقة مربعة", k:"برقبة عالية",
+  l:"بأكمام طويلة", m:"بأكمام قصيرة", n:"بدون أكمام", o:"بأكمام منفوخة",
+  p:"ساتان", q:"شيفون", r:"مخمل", s:"تويد", t:"جلد", u:"جينز", v:"كتان", w:"تريكو", x:"تول", y:"دانتيل", z:"ترتر", A:"صوف", B:"قطن",
+  C:"مزيّن بالخرز والأحجار اللامعة", D:"بتطريز ناعم", E:"بشراشيب", F:"بلمسات ريش", G:"بتفاصيل ورود", H:"ببليسيه", I:"بفيونكة", J:"مع حزام على الخصر",
+  K:"بفتحة جانبية", L:"بكشكش", M:"بأزرار", W:"بظهر مكشوف", X:"بنقشة مميزة", Y:"بلمسة فينتج"};
+function describe(p){
+  const f = p.f || "", has = k => f.includes(k), pick = ks => ks.split("").filter(has).map(k => FX[k]);
+  const type = label(p).split(" ")[0] === "فستان" && p.cat === "evening" ? "فستان سهرة" : label(p);
+  const len = has("P") ? "طويل" : has("O") ? "ميدي" : has("N") ? "قصير" : "";
+  const s = [];
+  const cut = pick("abcdefghijk").concat(pick("lmno"));
+  s.push(`${type}${len && !type.includes(len) ? " " + len : ""}${cut.length ? " " + cut.slice(0, 3).join("، ") : ""}.`);
+  const fab = pick("pqrstuvwxyzAB");
+  if (fab.length) s.push(`الخامة: ${fab.slice(0, 3).join(" و")}.`);
+  const det = pick("CDEFGHIJKLMWXY");
+  if (det.length) s.push(`التفاصيل: ${det.slice(0, 3).join("، ")}.`);
+  const occ = has("R") ? "مناسب للأعراس والخطوبات" : has("Q") || p.cat === "evening" ? "مناسب للسهرات والمناسبات" : has("T") ? "مناسب للدوام والإطلالات الرسمية" : has("S") ? "مثالي للإطلالات اليومية" : "";
+  const sea = has("U") && !has("V") ? "للصيف" : has("V") && !has("U") ? "للخريف والشتاء" : "";
+  if (occ || sea) s.push([occ, sea].filter(Boolean).join("، ") + ".");
+  const n = (p.colors || []).length;
+  s.push(n > 1 ? `متوفر بـ${n === 2 ? "لونين" : n + " ألوان"}: ${p.colors.map(c => c.name).join("، ")}. المقاسات من S لـ XXL.` : n ? `اللون: ${p.colors[0].name}. المقاسات من S لـ XXL.` : "المقاسات من S لـ XXL.");
+  return s.join(" ");
+}
+function showcase(){
+  const top = (arr, n) => arr.slice(0, n);
+  const byPop = a => a.slice().sort((x, y) => y.pop - x.pop || x.rank - y.rank);
+  const S = [
+    ["new", "وصل حديثًا", top(P.filter(p => p.isNew), 18), "new"],
+    ["pop", "الأكثر طلبًا", top(byPop(P.filter(p => p.pop > 0)), 18), "all"],
+    ["evening", "فساتين سهرة", top(byPop(P.filter(p => p.cat === "evening")), 18), "evening"],
+    ["sets", "أطقم", top(byPop(P.filter(p => p.cat === "sets")), 18), "sets"],
+    ["jackets", "جاكيتات", top(byPop(P.filter(p => p.cat === "jackets")), 18), "jackets"],
+  ].filter(s => s[2].length >= 6);
+  if (!S.length) return;
+  const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack");
+  const DUR = 7000; let i = 0, timer = null;
+  tabs.innerHTML = S.map((s, k) => `<button class="showTab" role="tab" type="button" data-k="${k}" aria-selected="false">${s[1]}<i></i></button>`).join("");
+  sec.style.setProperty("--dur", DUR / 1000 + "s");
+  const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
+  function render(k, animate){
+    i = k; const s = S[k];
+    tabs.querySelectorAll(".showTab").forEach((b, j) => { b.setAttribute("aria-selected", j === k); const bar = b.querySelector("i"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
+    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; track.style.setProperty("--speed", s[2].length * 4 + "s"); track.classList.remove("fade"); };
+    if (animate) { track.classList.add("fade"); setTimeout(put, 450); } else put();
   }
-  vids.forEach(v => v.addEventListener("click", () => { v.paused ? v.play().catch(() => {}) : v.pause(); }));
-  document.getElementById("reelsNew").onclick = () => { const c = document.querySelector('.chip[data-k="new"]'); if (c) { c.click(); document.getElementById("chips").scrollIntoView({behavior: "smooth"}); } };
-})();
+  function play(){ clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !sec.matches(":hover")) render((i + 1) % S.length, true); }, DUR); }
+  tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); play(); } };
+  track.onclick = e => { const b = e.target.closest(".sc"); if (b) openItem(P[+b.dataset.i]); };
+  document.getElementById("showAll").onclick = () => { const k = S[i][3]; const c = document.querySelector(`.chip[data-k="${k}"]`); if (c) c.click();
+    if (S[i][0] === "pop") { document.getElementById("sort").value = "pop"; filter(); }
+    document.getElementById("chips").scrollIntoView({behavior: "smooth"}); };
+  sec.hidden = false; render(0, false); play();
+}
 document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
 try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
 let qt;
@@ -458,6 +519,7 @@ function openItem(p){
   show(0);
   document.getElementById("lbname").textContent = label(p);
   document.getElementById("lbcode").textContent = p.code;
+  document.getElementById("lbdesc").textContent = describe(p);
   const c = CART[p.code] || {lines: [], note: ""};
   const rows = p.colors.length ? p.colors : [{hex: "", name: "", img: ""}];
   const qOf = (name, s) => { const l = c.lines.find(l => l.color === name); return l && l.q[s] ? l.q[s] : ""; };
@@ -612,11 +674,11 @@ document.getElementById("clearCart").onclick = () => {
 fetch("products.json?v=__VER__").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
-    pop: +a[6] || 0, colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
+    pop: +a[6] || 0, f: a[10] || "", colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
   const pops = P.map(p => p.pop).filter(Boolean).sort((a, b) => b - a), popCut = pops[Math.floor(pops.length * 0.1)] || Infinity;
   P.forEach((p, i) => { p.i = i; p.isNew = !!p.added && p.added >= cutoff; p.isPop = p.pop > 0 && p.pop >= popCut; });
   document.getElementById("updated").textContent = d.updated;
-  chips(); filter(); saveCart();
+  chips(); filter(); saveCart(); showcase();
 }).catch(() => {
   document.getElementById("grid").innerHTML = '<p class="note">تعذّر تحميل القطع. حدّثي الصفحة أو راسلينا على واتساب.</p>';
 });
