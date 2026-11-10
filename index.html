@@ -69,8 +69,16 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .item{display:flex;flex-direction:column;gap:8px;min-width:0}
 .ph{position:relative;aspect-ratio:3/4;max-width:100%;background:var(--rose-soft);overflow:hidden;border:0;padding:0;cursor:zoom-in;border-radius:2px}
 .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
-.ph:hover img{transform:scale(1.03)}
-.code{position:absolute;top:8px;inset-inline-start:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
+.ph .gal{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;direction:ltr;overscroll-behavior-x:contain}
+.ph .gal::-webkit-scrollbar{display:none}
+.ph .gal img{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;-webkit-user-drag:none;user-select:none}
+.ph .dots{direction:ltr;position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.ph .dots i{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.55;box-shadow:0 0 2px rgba(0,0,0,.35);transition:opacity .2s,transform .2s}
+.ph .dots i.on{opacity:1;transform:scale(1.25)}
+.ph .nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 90%,transparent);color:var(--ink);font-size:22px;line-height:1;cursor:pointer;opacity:0;transition:opacity .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.ph .nav.prev{left:8px}.ph .nav.next{right:8px}
+@media (hover:hover){.ph:hover .nav{opacity:1}}
+.code{position:absolute;top:8px;right:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
 .nm{font-weight:500;font-size:14.5px;line-height:1.5;margin:4px 0 0;text-wrap:balance}
 .sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
 .price{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
@@ -163,7 +171,7 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .sortby select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit}
 .chip.hot{border-color:var(--rose);color:var(--rose)}
 .chip.hot[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:var(--paper)}
-.tag-new,.tag-pop{position:absolute;top:8px;inset-inline-end:8px;font-size:11px;padding:3px 7px;border-radius:2px;font-weight:600}
+.tag-new,.tag-pop{position:absolute;top:8px;left:8px;font-size:11px;padding:3px 7px;border-radius:2px;font-weight:600}
 .tag-new{background:var(--ink);color:var(--ivory)}
 .tag-pop{background:var(--rose);color:var(--paper)}
 .qhead{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
@@ -382,16 +390,23 @@ function chips(){
 }
 document.getElementById("chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; try { history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); } catch(e) {} chips(); filter(); };
 
+document.getElementById("grid").addEventListener("scroll", e => {
+  const g = e.target; if (!g.classList || !g.classList.contains("gal")) return;
+  const k = Math.round(g.scrollLeft / g.clientWidth), d = g.parentElement.querySelectorAll(".dots i");
+  d.forEach((x, j) => x.classList.toggle("on", j === k));
+}, true);
+document.getElementById("grid").addEventListener("keydown", e => { const ph = e.target.closest && e.target.closest(".ph"); if (ph && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); ph.click(); } });
 function card(p){
   const inC = CART[p.code];
   return `<article class="item" data-code="${p.code}">
-      <button class="ph" data-i="${p.i}" aria-label="عرض ${esc(label(p))}">
-        <img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.imgs[0]}'">
+      <div class="ph" data-i="${p.i}" role="button" tabindex="0" aria-label="عرض ${esc(label(p))}">
+        <div class="gal">${p.imgs.slice(0, 6).map((u, k) => `<img src="${u}_480x480.jpg" alt="${k ? "" : esc(label(p))}" loading="lazy" draggable="false" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${u}'">`).join("")}</div>
+        ${p.imgs.length > 1 ? `<span class="nav prev" data-nav="-1" aria-hidden="true">‹</span><span class="nav next" data-nav="1" aria-hidden="true">›</span><span class="dots">${p.imgs.slice(0, 6).map((_, k) => `<i${k ? "" : ' class="on"'}></i>`).join("")}</span>` : ""}
         <span class="code">${p.code}</span>
         ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور${p.colors.length > 1 ? " · " + p.colors.length + " ألوان" : ""}</span>` : ""}
         ${p.isNew ? `<span class="tag-new">جديد</span>` : p.isPop ? `<span class="tag-pop">مطلوب</span>` : ""}
         ${inC ? `<span class="badge-in">بطلبك · ${pieces(inC)} قطعة</span>` : ""}
-      </button>
+      </div>
       <h3 class="nm">${esc(label(p))}</h3>
       <button class="order add" data-i="${p.i}" type="button">${inC ? "عدّل الكمية" : "أضف للطلب"}</button>
     </article>`;
@@ -568,6 +583,8 @@ document.getElementById("qtable").addEventListener("click", e => {
   if (k >= 0) show(k); else { const im = document.getElementById("lbimg"); im.src = u + "_960x960.jpg"; }
 });
 document.getElementById("grid").addEventListener("click", e => {
+  const nv = e.target.closest("[data-nav]");
+  if (nv) { const g = nv.parentElement.querySelector(".gal"); g.scrollBy({left: +nv.dataset.nav * g.clientWidth, behavior: "smooth"}); return; }
   const b = e.target.closest(".ph, .add"); if (!b) return;
   openItem(P[+b.dataset.i]);
 });
@@ -693,7 +710,7 @@ document.getElementById("clearCart").onclick = () => {
   else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
 };
 
-fetch("products.json?v=1794325904").then(r => r.json()).then(d => {
+fetch("products.json?v=1794326038").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
     pop: +a[6] || 0, f: a[10] || "", colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
