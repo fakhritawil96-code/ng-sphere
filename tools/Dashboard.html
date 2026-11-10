@@ -75,6 +75,11 @@ select.f{background:var(--paper);border:1px solid var(--line);border-radius:999p
 /* list */
 .list{display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
 .card{border:1px solid var(--line);border-radius:6px;background:var(--paper);overflow:hidden}
+.info{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:var(--soft)}
+.kv{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kv span{font-size:12px;color:var(--muted)}
+.kv b{font-size:16px;font-weight:600;line-height:1.3}
+.info .wa{margin-inline-start:auto}
 .lines{border-top:1px solid var(--line);padding:6px 16px 12px;display:flex;flex-direction:column}
 .ln{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
 .ln:first-child{border-top:0}
@@ -296,12 +301,17 @@ function renderList(){
     const items = o.items || [], showAll = OPENED.has(o.id), list = showAll ? items : items.slice(0, 4);
     return `<article class="card" data-id="${o.id}">
       <div class="row" tabindex="0" role="button" aria-label="${esc(o.shop || "طلب")}">
-        <div><div class="shop">${esc(o.shop || "محل بدون اسم")}${fr}</div>
-          <div class="meta">${o.city ? `<b>${esc(o.city)}</b>` : "بدون مدينة"}${o.phone ? ` · <span class="ltr">${esc(phoneFmt(o.phone))}</span>` : ""} · <span class="ltr">${esc(o.id)}</span></div></div>
+        <div><div class="meta">طلب <span class="ltr">${esc(o.id)}</span>${fr}</div></div>
         <div class="qty c-qty"><b class="num">${o.models || 0}</b> موديل · <b class="num">${o.pieces || 0}</b> قطعة</div>
         <div class="meta c-date">${fmtWhen(o.receivedAt)}${o.followUp && OPEN.has(o.status) ? `<br>متابعة ${fmtDate(o.followUp)}` : ""}</div>
         <label class="tick c-tick${o.replied ? " on" : ""}" data-stop><input type="checkbox" data-reply="${o.id}"${o.replied ? " checked" : ""}${canWrite ? "" : " disabled"}>رديت</label>
         <select class="pill st-${o.status} c-st" data-status="${o.id}" data-stop aria-label="حالة الطلب"${canWrite ? "" : " disabled"}>${STATUSES.map(([k, n]) => `<option value="${k}"${k === o.status ? " selected" : ""}>${n}</option>`).join("")}</select>
+      </div>
+      <div class="info">
+        <div class="kv"><span>المحل</span><b>${esc(o.shop || "—")}</b></div>
+        <div class="kv"><span>المدينة</span><b>${esc(o.city || "—")}</b></div>
+        <div class="kv"><span>التلفون</span><b class="ltr">${esc(phoneFmt(o.phone) || "—")}</b></div>
+        ${o.phone ? `<a class="btn sm ghost wa" href="https://wa.me/962${phoneFmt(o.phone).replace(/\D/g, "").replace(/^0/, "")}" target="_blank" rel="noopener" data-stop>واتساب المحل</a>` : ""}
       </div>
       <div class="lines">
         ${list.map(i => `<div class="ln">
