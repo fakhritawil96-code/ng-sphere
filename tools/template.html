@@ -240,7 +240,7 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 <section class="show" id="show" aria-label="معرض متحرك" hidden>
   <div class="showHead wrap">
     <div class="showTabs" id="showTabs" role="tablist"></div>
-    <button class="linkbtn" type="button" id="showAll">تصفّح القسم كامل</button>
+    <button class="linkbtn" type="button" id="showAll" style="white-space:nowrap">عرض الكل</button>
   </div>
   <div class="showStage" id="showStage"><div class="showTrack" id="showTrack"></div></div>
 </section>
@@ -470,7 +470,7 @@ function showcase(){
   const DUR = 7000; let i = 0, timer = null;
   tabs.innerHTML = S.map((s, k) => `<button class="showTab" role="tab" type="button" data-k="${k}" aria-selected="false">${s[1]}<i></i></button>`).join("");
   sec.style.setProperty("--dur", DUR / 1000 + "s");
-  const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
+  const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
   function render(k, animate){
     i = k; const s = S[k];
     tabs.querySelectorAll(".showTab").forEach((b, j) => { b.setAttribute("aria-selected", j === k); const bar = b.querySelector("i"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
