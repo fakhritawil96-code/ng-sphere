@@ -159,6 +159,36 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .order.big{background:var(--ink);color:var(--ivory);padding:12px;font-size:15px}
 .order.big[aria-disabled="true"]{opacity:.4;pointer-events:none}
 @media (max-width:420px){.sizegrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sortby{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.sortby select{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit}
+.chip.hot{border-color:var(--rose);color:var(--rose)}
+.chip.hot[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:var(--paper)}
+.tag-new,.tag-pop{position:absolute;top:8px;inset-inline-end:8px;font-size:11px;padding:3px 7px;border-radius:2px;font-weight:600}
+.tag-new{background:var(--ink);color:var(--ivory)}
+.tag-pop{background:var(--rose);color:var(--paper)}
+.qhead{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.qtable{overflow-x:auto;border:1px solid var(--line);border-radius:2px}
+.qtable table{border-collapse:collapse;width:100%;min-width:330px}
+.qtable th{font:500 12px var(--serif);letter-spacing:.04em;color:var(--muted);padding:6px 4px;background:var(--soft,var(--rose-soft));text-align:center}
+.qtable th.c{text-align:start;font-family:var(--sans);letter-spacing:0;padding-inline-start:8px}
+.qtable td{padding:4px 2px;border-top:1px solid var(--line);text-align:center}
+.qtable td.c{text-align:start;white-space:nowrap;padding-inline-start:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+.qtable td.c button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--ink);font:500 13px var(--sans);cursor:pointer;padding:2px}
+.qtable .sw{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);flex:none;background-size:cover;background-position:center}
+.qtable input{width:100%;min-width:34px;box-sizing:border-box;border:1px solid var(--line);background:var(--ivory);color:var(--ink);border-radius:2px;padding:7px 2px;font:500 14px var(--sans);text-align:center;font-variant-numeric:tabular-nums}
+.qtable input:focus{outline:none;border-color:var(--ink)}
+.sg{border:0;padding:0;background:var(--paper);color:var(--ink);max-width:min(560px,96vw);width:100%;border-radius:4px}
+.sg::backdrop{background:rgb(10 9 9 / .6)}
+.sgBody{padding:16px 18px 20px;display:flex;flex-direction:column;gap:12px}
+.tblWrap{overflow-x:auto}
+.tblWrap table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tblWrap th,.tblWrap td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
+.tblWrap th{color:var(--muted);font-weight:500}
+.tblWrap td:first-child{font-weight:600}
+.termsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;max-width:880px;margin:22px auto 0}
+.term{border:1px solid var(--line);background:var(--paper);padding:14px 16px;border-radius:2px;display:flex;flex-direction:column;gap:2px}
+.term b{font-size:16px;font-weight:600}
+.term span{color:var(--muted);font-size:13.5px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -190,7 +220,10 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="ابحث بالكود أو الوصف، مثل: فستان أحمر، طقم دانتيل، 765526" autocomplete="off"></label>
   </div>
-  <div class="meta"><span><b id="shown">…</b> موديل</span><span>آخر تحديث: <span id="updated">…</span></span></div>
+  <div class="meta"><span><b id="shown">…</b> موديل</span>
+    <label class="sortby" for="sort">ترتيب:
+      <select id="sort"><option value="new">الأحدث</option><option value="pop">الأكثر طلبًا</option></select></label>
+    <span>آخر تحديث: <span id="updated">…</span></span></div>
   <div class="grid" id="grid"></div>
   <p class="note" id="empty" hidden>ما في موديلات بهالبحث. جرّب كلمة ثانية، مثل «فستان أحمر» أو «طقم دانتيل»، أو اختار قسم.</p>
   <div class="moreWrap"><button class="btn" id="moreBtn" hidden>عرض المزيد</button></div>
@@ -200,11 +233,16 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   <div class="wrap">
     <h2>كيف تطلب بالجملة</h2>
     <ol class="steps">
-      <li><strong>اختار الموديلات</strong><p>افتح أي موديل وحدد الكمية من كل مقاس، واضغط «أضف للطلب». كرر لكل الموديلات اللي بدك ياها.</p></li>
-      <li><strong>راجع طلبك وابعته</strong><p>من شريط «طلبك» تحت، راجع الموديلات والكميات، واكتب اسم المحل والمدينة، وابعت الطلب كله برسالة واتساب وحدة.</p></li>
-      <li><strong>منرد عليك بعرض سعر</strong><p>منبعتلك سعر الجملة لكل موديل ومدة التوصيل وطريقة الدفع، وبعد ما تأكد منجهّز الطلب.</p></li>
+      <li><strong>اختار الموديلات</strong><p>افتح أي موديل، وحدد الكمية من كل لون ومقاس، واضغط «أضف للطلب». كرر لكل الموديلات اللي بدك ياها.</p></li>
+      <li><strong>ابعت الطلب</strong><p>من شريط «طلبك» تحت، راجع الموديلات واكتب اسم المحل ورقمك، واضغط «أرسل الطلب». بينفتح واتساب والرسالة جاهزة.</p></li>
+      <li><strong>منرد عليك بعرض سعر</strong><p>منبعتلك سعر الجملة لكل موديل وتكلفة الشحن، وبعد ما تأكد ودفعت العربون منطلب البضاعة.</p></li>
     </ol>
-    <p class="terms">ما في حد أدنى للطلب. البضاعة بتوصل من المصنع، والمدة الدقيقة منأكدها مع عرض السعر.</p>
+    <div class="termsGrid">
+      <div class="term"><b>٢–٣ أسابيع</b><span>مدة التوصيل من تأكيد الطلب</span></div>
+      <div class="term"><b>عربون ٥٠٪</b><span>والباقي عند الاستلام</span></div>
+      <div class="term"><b>بدون حد أدنى</b><span>اطلب الكمية اللي بتناسب محلك</span></div>
+      <div class="term"><b>عرض سعر خلال يوم</b><span>على واتساب، مع تكلفة الشحن</span></div>
+    </div>
   </div>
 </section>
 
@@ -224,16 +262,32 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   <div class="body">
     <div class="nm" id="lbname"></div>
     <div class="sub"><span id="lbcode" class="ltr"></span><span id="lbin" class="incart" hidden>بطلبك</span></div>
-    <fieldset class="sizes">
-      <legend>الكمية من كل مقاس</legend>
-      <div class="sizegrid" id="sizegrid"></div>
-    </fieldset>
-    <label class="fld"><span>ملاحظة (لون، مقاس ثاني…)</span><input id="lbnote" type="text" autocomplete="off" placeholder="اختياري"></label>
+    <div class="qhead"><span>الكمية من كل لون ومقاس</span><button class="linkbtn" id="sizeGuideBtn" type="button">دليل المقاسات</button></div>
+    <div class="qtable" id="qtable"></div>
+    <label class="fld"><span>ملاحظة (اختياري)</span><input id="lbnote" type="text" autocomplete="off" placeholder="مثلًا: لون مش موجود بالصور"></label>
     <div class="lbactions">
       <button class="order" id="lbadd" type="button">أضف للطلب</button>
       <button class="linkbtn" id="lbremove" type="button" hidden>شيل من الطلب</button>
     </div>
     <p class="hint" id="lbhint" hidden>حدد الكمية من مقاس واحد على الأقل.</p>
+  </div>
+</dialog>
+
+<dialog id="sg" class="sg" aria-labelledby="sgT">
+  <div class="cartHead"><h2 id="sgT">دليل المقاسات</h2><button class="x" id="sgx" aria-label="إغلاق">×</button></div>
+  <div class="sgBody">
+    <p class="note" style="text-align:start;padding:0">قياسات تقريبية بالسنتيمتر للجسم. المقاسات الصينية بتطلع أصغر من الأوروبية بدرجة تقريبًا، فإذا زبوناتك عادةً بيلبسوا M، اطلب L.</p>
+    <div class="tblWrap"><table>
+      <thead><tr><th>المقاس</th><th>يعادل</th><th>الصدر</th><th>الخصر</th><th>الأرداف</th></tr></thead>
+      <tbody>
+        <tr><td>S</td><td>36</td><td>82–86</td><td>64–68</td><td>88–92</td></tr>
+        <tr><td>M</td><td>38</td><td>86–90</td><td>68–72</td><td>92–96</td></tr>
+        <tr><td>L</td><td>40</td><td>90–94</td><td>72–76</td><td>96–100</td></tr>
+        <tr><td>XL</td><td>42</td><td>94–98</td><td>76–80</td><td>100–104</td></tr>
+        <tr><td>XXL</td><td>44</td><td>98–104</td><td>80–86</td><td>104–110</td></tr>
+        <tr><td>فري سايز</td><td>36–40</td><td colspan="3">مقاس واحد مرن، بيناسب تقريبًا من S لـ L</td></tr>
+      </tbody></table></div>
+    <p class="note" style="text-align:start;padding:0">بدك قياسات موديل معيّن؟ ابعتلنا الكود على واتساب ومنبعتلك جدوله من المصنع.</p>
   </div>
 </dialog>
 
@@ -281,11 +335,12 @@ const label = p => p.name + (p.color ? " – " + p.color : "");
 document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي محل وبدي أستفسر عن الجملة");
 
 let cur = "all", q = "", list = [], shownN = 0;
-try { const h = location.hash.slice(1); if (CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
+try { const h = location.hash.slice(1); if (h === "new" || CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
 
 function chips(){
   const el = document.getElementById("chips");
-  el.innerHTML = CATS.map(([k,n]) => {
+  const nNew = P.filter(p => p.isNew).length;
+  el.innerHTML = (nNew ? `<button class="chip hot" data-k="new" aria-pressed="${cur==="new"}">وصل حديثًا<small>${nNew.toLocaleString("en")}</small></button>` : "") + CATS.map(([k,n]) => {
     const c = k === "all" ? P.length : P.filter(p => p.cat === k).length;
     return c ? `<button class="chip" data-k="${k}" aria-pressed="${k===cur}">${n}<small>${c.toLocaleString("en")}</small></button>` : "";
   }).join("");
@@ -298,7 +353,8 @@ function card(p){
       <button class="ph" data-i="${p.i}" aria-label="عرض ${esc(label(p))}">
         <img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.imgs[0]}'">
         <span class="code">${p.code}</span>
-        ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور</span>` : ""}
+        ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور${p.colors.length > 1 ? " · " + p.colors.length + " ألوان" : ""}</span>` : ""}
+        ${p.isNew ? `<span class="tag-new">جديد</span>` : p.isPop ? `<span class="tag-pop">مطلوب</span>` : ""}
         ${inC ? `<span class="badge-in">بطلبك · ${pieces(inC)} قطعة</span>` : ""}
       </button>
       <h3 class="nm">${esc(label(p))}</h3>
@@ -315,11 +371,14 @@ function filter(){
   const words = norm(raw).replace(/^ng-?/, "").split(/[\s,،]+/).filter(Boolean).map(stem);
   const catName = Object.fromEntries(CATS);
   list = P.filter(p => {
-    if (cur !== "all" && p.cat !== cur) return false;
+    if (cur === "new" ? !p.isNew : (cur !== "all" && p.cat !== cur)) return false;
     if (!words.length) return true;
     if (!p._h) p._h = norm(p.name + " " + p.color + " " + (catName[p.cat] || "") + " " + p.code);
     return words.every(w => p._h.includes(w));
   });
+  const sort = document.getElementById("sort").value;
+  if (sort === "pop") list.sort((a, b) => b.pop - a.pop || a.rank - b.rank);
+  else list.sort((a, b) => (b.added > a.added ? 1 : b.added < a.added ? -1 : 0) || a.rank - b.rank);
   shownN = 0;
   document.getElementById("grid").innerHTML = "";
   document.getElementById("shown").textContent = list.length.toLocaleString("en");
@@ -338,6 +397,8 @@ document.getElementById("moreBtn").onclick = more;
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && shownN < list.length) more(); }, {rootMargin: "800px"}).observe(document.getElementById("moreBtn"));
 }
+document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
+try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
 let qt;
 document.getElementById("q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { q = e.target.value; filter(); }, 200); });
 
@@ -359,7 +420,8 @@ document.getElementById("lbimg").addEventListener("touchstart", e => { tx = e.to
 document.getElementById("lbimg").addEventListener("touchend", e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) show(gi + (dx > 0 ? 1 : -1)); tx = null; });
 lb.addEventListener("keydown", e => { if (e.key === "ArrowLeft") show(gi + 1); if (e.key === "ArrowRight") show(gi - 1); });
 let curP = null;
-const SIZES = ["S","M","L","XL","XXL"];
+const SIZES = ["S","M","L","XL","XXL","فري سايز"];
+const SZL = s => s === "فري سايز" ? "Free" : s;
 function openItem(p){
   curP = p;
   gal = p.imgs; gi = 0;
@@ -368,34 +430,55 @@ function openItem(p){
   show(0);
   document.getElementById("lbname").textContent = label(p);
   document.getElementById("lbcode").textContent = p.code;
-  const c = CART[p.code] || {q:{}, note:""};
-  document.getElementById("sizegrid").innerHTML = SIZES.map(s => `<label class="sz"><span>${s}</span><input type="number" inputmode="numeric" min="0" step="1" id="q-${s}" value="${c.q[s] || ""}" placeholder="0"></label>`).join("");
+  const c = CART[p.code] || {lines: [], note: ""};
+  const rows = p.colors.length ? p.colors : [{hex: "", name: "", img: ""}];
+  const qOf = (name, s) => { const l = c.lines.find(l => l.color === name); return l && l.q[s] ? l.q[s] : ""; };
+  document.getElementById("qtable").innerHTML = `<table><thead><tr>${p.colors.length ? `<th class="c">اللون</th>` : ""}${SIZES.map(s => `<th>${SZL(s)}</th>`).join("")}</tr></thead><tbody>${
+    rows.map((r, ri) => `<tr data-color="${esc(r.name)}" data-hex="${esc(r.hex)}">${p.colors.length ? `<td class="c"><button type="button" data-cimg="${esc(r.img)}" title="اعرض اللون"><span class="sw" style="background-color:${esc(r.hex)}${r.img ? `;background-image:url('${IMG}${esc(r.img)}_220x220.jpg')` : ""}"></span>${esc(r.name)}</button></td>` : ""}${
+      SIZES.map(s => `<td><input type="number" inputmode="numeric" min="0" step="1" data-size="${s}" value="${qOf(r.name, s)}" placeholder="0" aria-label="${esc(r.name)} ${s}"></td>`).join("")}</tr>`).join("")}</tbody></table>`;
   document.getElementById("lbnote").value = c.note || "";
   document.getElementById("lbin").hidden = !CART[p.code];
   document.getElementById("lbremove").hidden = !CART[p.code];
   document.getElementById("lbadd").textContent = CART[p.code] ? "حدّث الكمية" : "أضف للطلب";
   document.getElementById("lbhint").hidden = true;
-  lb.showModal();
+  track(p.code, "v");
+  if (!lb.open) lb.showModal();
 }
+document.getElementById("qtable").addEventListener("click", e => {
+  const b = e.target.closest("[data-cimg]"); if (!b || !b.dataset.cimg) return;
+  const u = IMG + b.dataset.cimg; const k = gal.indexOf(u);
+  if (k >= 0) show(k); else { const im = document.getElementById("lbimg"); im.src = u + "_960x960.jpg"; }
+});
 document.getElementById("grid").addEventListener("click", e => {
   const b = e.target.closest(".ph, .add"); if (!b) return;
   openItem(P[+b.dataset.i]);
 });
 document.getElementById("lbadd").onclick = () => {
-  const q = {};
-  SIZES.forEach(s => { const v = parseInt(document.getElementById("q-" + s).value, 10); if (v > 0) q[s] = v; });
+  const lines = [];
+  document.querySelectorAll("#qtable tbody tr").forEach(tr => {
+    const q = {};
+    tr.querySelectorAll("input").forEach(inp => { const v = parseInt(inp.value, 10); if (v > 0) q[inp.dataset.size] = v; });
+    if (Object.keys(q).length) lines.push({color: tr.dataset.color || "", hex: tr.dataset.hex || "", q});
+  });
   const note = document.getElementById("lbnote").value.trim();
-  if (!Object.keys(q).length) { document.getElementById("lbhint").hidden = false; return; }
-  CART[curP.code] = {q, note, name: label(curP), img: curP.imgs[0]};
+  if (!lines.length) { document.getElementById("lbhint").hidden = false; return; }
+  CART[curP.code] = {lines, note, name: label(curP), img: curP.imgs[0]};
+  track(curP.code, "a");
   saveCart(); refreshCard(curP.code); lb.close();
 };
 document.getElementById("lbremove").onclick = () => { delete CART[curP.code]; saveCart(); refreshCard(curP.code); lb.close(); };
+const sg = document.getElementById("sg");
+document.getElementById("sizeGuideBtn").onclick = () => sg.showModal();
+document.getElementById("sgx").onclick = () => sg.close();
+sg.addEventListener("click", e => { if (e.target === sg) sg.close(); });
 document.getElementById("lbx").onclick = () => lb.close();
 lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
 
 let CART = {};
 try { CART = JSON.parse(localStorage.getItem("ngCart") || "{}") || {}; } catch(e) { CART = {}; }
-const pieces = c => Object.values(c.q).reduce((a, b) => a + b, 0);
+Object.values(CART).forEach(c => { if (!c.lines) { c.lines = [{color: "", hex: "", q: c.q || {}}]; delete c.q; } });
+const pieces = c => c.lines.reduce((a, l) => a + Object.values(l.q).reduce((x, y) => x + y, 0), 0);
+const lineText = l => (l.color ? l.color + ": " : "") + Object.entries(l.q).map(([s, n]) => `${SZL(s)}×${n}`).join(" ");
 function saveCart(){
   try { localStorage.setItem("ngCart", JSON.stringify(CART)); } catch(e) {}
   const codes = Object.keys(CART), n = codes.reduce((a, k) => a + pieces(CART[k]), 0);
@@ -414,9 +497,8 @@ function renderCart(){
   const codes = Object.keys(CART);
   document.getElementById("cartList").innerHTML = codes.length ? codes.map(k => {
     const c = CART[k];
-    const sz = Object.entries(c.q).map(([s, n]) => `${s}×${n}`).join("  ");
     return `<div class="crow"><img src="${c.img}_220x220.jpg" alt="" referrerpolicy="no-referrer">
-      <div><div class="t">${esc(c.name)}</div><div class="s"><span class="ltr">${k}</span> · <span class="ltr">${sz}</span>${c.note ? " · " + esc(c.note) : ""}</div></div>
+      <div><div class="t">${esc(c.name)} <span class="ltr" style="color:var(--muted);font-size:12px">${k}</span></div>${c.lines.map(l => `<div class="s">${esc(lineText(l))}</div>`).join("")}${c.note ? `<div class="s">${esc(c.note)}</div>` : ""}</div>
       <div class="acts"><button class="linkbtn" data-edit="${k}" type="button">تعديل</button><button class="linkbtn" data-del="${k}" type="button">شيل</button></div></div>`;
   }).join("") : '<p class="note">طلبك فاضي. افتح أي موديل واضغط «أضف للطلب».</p>';
   document.getElementById("submitOrder").disabled = !codes.length;
@@ -425,8 +507,8 @@ function orderText(id){
   const shop = document.getElementById("shop").value.trim(), city = document.getElementById("city").value.trim(), on = document.getElementById("onote").value.trim();
   const codes = Object.keys(CART);
   const lines = codes.map((k, i) => {
-    const c = CART[k]; const sz = Object.entries(c.q).map(([s, n]) => `${s}×${n}`).join(" ");
-    return `${i + 1}) ${k} – ${c.name}\n   ${sz} (المجموع ${pieces(c)})${c.note ? "\n   ملاحظة: " + c.note : ""}`;
+    const c = CART[k];
+    return `${i + 1}) ${k} – ${c.name}\n${c.lines.map(l => "   " + lineText(l)).join("\n")}\n   (المجموع ${pieces(c)})${c.note ? "\n   ملاحظة: " + c.note : ""}`;
   });
   const total = codes.reduce((a, k) => a + pieces(CART[k]), 0);
   return `مرحبا NG SPHERE، طلب جملة${id ? " رقم " + id : ""}:\n${shop ? "المحل: " + shop + "\n" : ""}${city ? "المدينة: " + city + "\n" : ""}\n${lines.join("\n")}\n\nالمجموع: ${codes.length} موديل، ${total} قطعة${on ? "\nملاحظات: " + on : ""}\n\nبدي عرض سعر ومدة التوصيل.`;
@@ -444,6 +526,15 @@ document.getElementById("cartList").addEventListener("click", e => {
   if (ed) { const p = P.find(x => x.code === ed.dataset.edit); if (p) { cartDlg.close(); openItem(p); } }
 });
 const ORDERS_URL = "__ORDERS_URL__";
+let EV = {};
+function track(code, kind){ (EV[code] = EV[code] || {v: 0, a: 0})[kind]++; }
+function flushEvents(){
+  if (!ORDERS_URL || !Object.keys(EV).length) return;
+  const body = JSON.stringify({action: "events", counts: EV}); EV = {};
+  try { if (!(navigator.sendBeacon && navigator.sendBeacon(ORDERS_URL, new Blob([body], {type: "text/plain;charset=utf-8"})))) fetch(ORDERS_URL, {method: "POST", keepalive: true, headers: {"Content-Type": "text/plain;charset=utf-8"}, body}).catch(() => {}); } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushEvents(); });
+window.addEventListener("pagehide", flushEvents);
 const newId = () => "NG-O-" + Date.now().toString(36).toUpperCase().slice(-5) + Math.random().toString(36).slice(2, 4).toUpperCase();
 document.getElementById("submitOrder").onclick = async () => {
   const shop = document.getElementById("shop").value.trim(), phone = document.getElementById("phone").value.trim();
@@ -453,7 +544,9 @@ document.getElementById("submitOrder").onclick = async () => {
   hint.hidden = true;
   const id = newId();
   const order = {id, shop, phone, city: document.getElementById("city").value.trim(), notes: document.getElementById("onote").value.trim(),
-    items: Object.keys(CART).map(k => ({code: k, name: CART[k].name, note: CART[k].note || "", sizes: CART[k].q, img: String(CART[k].img || "").replace(IMG, "")}))};
+    items: Object.keys(CART).map(k => { const c = CART[k], sizes = {};
+      c.lines.forEach(l => Object.entries(l.q).forEach(([s, n]) => { sizes[(l.color ? l.color + " " : "") + SZL(s)] = n; }));
+      return {code: k, name: c.name, note: c.note || "", sizes, img: String(c.img || "").replace(IMG, "")}; })};
   const waUrl = "https://wa.me/" + WA + "?text=" + encodeURIComponent(orderText(id));
   // 1) record the order in the background (keepalive survives leaving the page)
   if (ORDERS_URL) {
@@ -481,8 +574,11 @@ document.getElementById("clearCart").onclick = () => {
 };
 
 fetch("products.json?v=__VER__").then(r => r.json()).then(d => {
-  P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h)})).filter(p => p.imgs.length);
-  P.forEach((p, i) => p.i = i);
+  const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
+  P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
+    pop: +a[6] || 0, colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
+  const pops = P.map(p => p.pop).filter(Boolean).sort((a, b) => b - a), popCut = pops[Math.floor(pops.length * 0.1)] || Infinity;
+  P.forEach((p, i) => { p.i = i; p.isNew = !!p.added && p.added >= cutoff; p.isPop = p.pop > 0 && p.pop >= popCut; });
   document.getElementById("updated").textContent = d.updated;
   chips(); filter(); saveCart();
 }).catch(() => {

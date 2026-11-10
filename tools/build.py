@@ -167,48 +167,86 @@ def make_code(pid, used):
     used.add(code)
     return code
 
-def to_item(row, used, keep_code=None):
-    pid, title, price, moq, _gid, imgs = row
+COLOR_NAMES = [("أسود", (20, 20, 20)), ("أبيض", (245, 245, 245)), ("رمادي", (128, 128, 128)), ("فضي", (192, 192, 192)),
+    ("أحمر", (200, 30, 40)), ("خمري", (110, 20, 40)), ("زهري", (240, 150, 180)), ("فوشيا", (220, 40, 140)),
+    ("برتقالي", (240, 130, 30)), ("أصفر", (240, 210, 40)), ("ذهبي", (200, 160, 60)), ("بيج", (225, 205, 170)),
+    ("كريمي", (245, 235, 210)), ("بني", (120, 75, 40)), ("كاكي", (170, 150, 100)), ("أخضر", (40, 140, 70)),
+    ("زيتي", (100, 110, 50)), ("نعناعي", (160, 220, 190)), ("أزرق", (40, 90, 200)), ("سماوي", (130, 190, 235)),
+    ("كحلي", (25, 35, 80)), ("بنفسجي", (120, 70, 160)), ("ليلكي", (190, 160, 220))]
+def color_name(hexv):
+    h = str(hexv or "").lstrip("#")
+    if len(h) != 6: return ""
+    try: rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+    except ValueError: return ""
+    return min(COLOR_NAMES, key=lambda c: sum((a - b) ** 2 for a, b in zip(rgb, c[1])))[0]
+
+TODAY = datetime.date.today().isoformat()
+STALE = re.compile(r"\b20(1\d|2[0-4])\b")   # titles that name 2024 or earlier
+
+def norm_row(r):
+    """accepts old 6-field rows and v3 11-field rows"""
+    r = list(r) + [None] * (11 - len(r))
+    pid, title, price, moq, gid, imgs, sold, orders, colors, freight, rank = r
+    return pid, title, price, moq, gid, imgs or [], int(sold or 0), int(orders or 0), colors or [], float(freight or 0), (rank if rank is not None else 10**6)
+
+def to_item(row, used, keep_code=None, added=None):
+    pid, title, price, moq, gid, imgs, sold, orders, colors, freight, rank = norm_row(row)
     name, cat, color = arabic_name(title)
     code = keep_code or make_code(pid, used)
-    return [code, name, cat, color, jod_price(price), imgs[:8]]
+    cols = []
+    for hexv, img in colors:
+        n = color_name(hexv)
+        if n and n not in [c[1] for c in cols]: cols.append([hexv, n, img or ""])
+    pop = sold * 3 + orders
+    return [code, name, cat, color, jod_price(price), imgs[:8], pop, cols, added or TODAY, rank]
 
 old = load_public()
 old_by_img = {it[5][0]: it for it in old if it[5]}
 used = {it[0] for it in old}
 private_rows = []
+hidden = 0
 
 if args.add:
     rows = json.load(open(args.add))
     new_items = []
     for r in rows:
+        r = norm_row(r)
         if not r[5] or r[5][0] in old_by_img:
             continue
-        it = to_item(r, used)
+        it = to_item(r, used, added=TODAY)
         new_items.append(it)
         private_rows.append((it, r))
     items = new_items + old
     print(f"added {len(new_items)} new; total {len(items)}")
 else:
-    rows = json.load(open(args.src))
-    items = []
-    seen = set()
+    rows = [norm_row(r) for r in json.load(open(args.src))]
+    rows.sort(key=lambda r: r[10])
+    items, seen = [], set()
+    first_build = not any(len(it) > 8 for it in old)
     for r in rows:
         if not r[5] or r[5][0] in seen:
             continue
         seen.add(r[5][0])
+        pop = r[6] * 3 + r[7]
+        if STALE.search(r[1] or "") and pop == 0:       # old season, never sold: keep off the site
+            hidden += 1
+            continue
         prev = old_by_img.get(r[5][0])
-        it = to_item(r, used, keep_code=prev[0] if prev else None)
+        if prev and len(prev) > 8: added = prev[8]
+        elif first_build: added = TODAY if r[10] < 160 else "2026-01-01"
+        else: added = TODAY
+        it = to_item(r, used, keep_code=prev[0] if prev else None, added=added)
         items.append(it)
         private_rows.append((it, r))
-    print(f"full rebuild: {len(items)} items")
+    removed = len({it[5][0] for it in old if it[5]} - seen)
+    print(f"full rebuild: {len(items)} items, hidden stale {hidden}, no longer at supplier {removed}")
 
-# private order map (only rows touched this run)
+# private order map
 with open("orders-map.csv", "w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f)
-    w.writerow(["code", "arabic_name", "supplier_price_usd", "min_order", "site_price_jod", "supplier_title", "supplier_link"])
+    w.writerow(["code", "arabic_name", "supplier_price_usd", "min_order", "freight_to_jordan_usd", "sold_180_days", "supplier_title", "supplier_link"])
     for it, r in private_rows:
-        w.writerow([it[0], it[1] + (" – " + it[3] if it[3] else ""), r[2], r[3], it[4] or "", r[1],
+        w.writerow([it[0], it[1] + (" – " + it[3] if it[3] else ""), r[2], r[3], r[9] or "", r[6], r[1],
                     f"https://www.alibaba.com/product-detail/_{r[0]}.html"])
 
 today = datetime.date.today()
@@ -228,3 +266,4 @@ open("index.html", "w", encoding="utf-8").write(out)
 
 from collections import Counter
 print(dict(Counter(it[2] for it in items)))
+print("new (added today):", sum(1 for it in items if it[8] == TODAY), " with colors:", sum(1 for it in items if it[7]))

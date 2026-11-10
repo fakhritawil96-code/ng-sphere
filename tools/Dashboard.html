@@ -153,6 +153,24 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
 .parsed{background:var(--soft);border-radius:4px;padding:10px 12px;font-size:13px}
 .contact{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--ivory);padding:8px 16px;border-radius:999px;font-size:13.5px;z-index:20}
+.views{display:flex;gap:4px;margin:4px 0 14px;border-bottom:1px solid var(--line)}
+.views button{background:none;border:0;padding:10px 14px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.views button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}
+.money{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.money div{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.money b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.money span{font-size:12px;color:var(--muted)}
+.stage{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--ink);margin-inline-start:6px}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th,.tbl td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
+.tbl th{font-size:12px;color:var(--muted);font-weight:500;cursor:pointer;white-space:nowrap}
+.tbl td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl img{width:38px;height:38px;object-fit:cover;border-radius:4px;vertical-align:middle}
+.tblWrap{overflow-x:auto}
+.qr{display:flex;flex-wrap:wrap;gap:6px}
+.stageRow{display:flex;flex-wrap:wrap;gap:6px}
+.stageRow button{border:1px solid var(--line);background:none;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.stageRow button[aria-pressed="true"]{background:var(--ink);color:var(--ivory);border-color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -166,6 +184,9 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
 </header>
 
 <main class="wrap">
+  <nav class="views" id="views"><button type="button" data-v="orders" aria-pressed="true">الطلبات</button><button type="button" data-v="shops" aria-pressed="false">المحلات</button><button type="button" data-v="models" aria-pressed="false">الموديلات</button><button type="button" data-v="money" aria-pressed="false">الأرباح</button></nav>
+  <section id="vAlt" hidden></section>
+  <div id="vOrders">
   <div class="tiles" id="tiles"></div>
   <div class="filters">
     <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -187,6 +208,7 @@ dialog.sheet::backdrop{background:rgb(10 9 9 / .5)}
   </div>
   <div id="banner" class="banner" hidden></div>
   <div class="list" id="list"><div class="empty"><p>جاري تحميل الطلبات…</p></div></div>
+  </div>
 </main>
 
 <dialog class="sheet" id="sheet" aria-labelledby="shTitle">
@@ -207,6 +229,24 @@ const STATUSES = [
 ];
 const SLABEL = Object.fromEntries(STATUSES.map(s => [s[0], s[1]]));
 const OPEN = new Set(["new", "waiting", "confirmed", "processing"]);
+const STAGES = [["", "لسا ما انطلب"], ["ordered", "انطلب من المورد"], ["shipped", "انشحن"], ["arrived", "وصل عمّان"]];
+const STAGEL = Object.fromEntries(STAGES);
+const SITE = "https://fakhritawil96-code.github.io/ng-sphere/";
+const jd = n => (Math.round((+n || 0) * 100) / 100).toLocaleString("en") + " د.أ";
+const digits = s => String(s || "").replace(/\D/g, "");
+const keyOfPhone = p => digits(phoneFmt(p)).replace(/^0/, "") || "—";
+const waText = (p, txt) => waOf(p) + "?text=" + encodeURIComponent(txt);
+function quickReplies(o){
+  const hi = "مرحبا" + (o.shop ? " " + o.shop : "") + "،\n";
+  const q = o.quote ? `${o.quote} د.أ` : "____ د.أ";
+  return [
+    ["عرض سعر", hi + `وصلنا طلبك ${o.id} (${o.models} موديل، ${o.pieces} قطعة).\nالمجموع شامل الشحن لعمّان: ${q}\nالتوصيل خلال ٢–٣ أسابيع من تأكيد الطلب.\nلتثبيت الطلب: عربون ٥٠٪ والباقي عند الاستلام.\nبتحب نثبّته؟`],
+    ["تأكيد", hi + `تم تثبيت طلبك ${o.id}، شكرًا إلك.\nرح نطلبه من المصنع ونبلغك أول ما ينشحن. التوصيل المتوقع خلال ٢–٣ أسابيع.`],
+    ["انشحن", hi + `طلبك ${o.id} انشحن من المصنع 🚚\nبنبلغك أول ما يوصل عمّان.`],
+    ["وصل", hi + `طلبك ${o.id} وصل عمّان ✅\nمتى بيناسبك نسلّمك؟ الباقي عند الاستلام.`],
+    ["تذكير", hi + `بس حبيت أتأكد إذا شفت عرض السعر لطلبك ${o.id}؟ إذا في أي تعديل على الموديلات أو الكميات احكيلي.\nالكتالوج: ${SITE}`],
+  ];
+}
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today = () => new Date().toISOString().slice(0, 10);
@@ -311,7 +351,7 @@ function renderList(){
     const items = o.items || [], showAll = OPENED.has(o.id), list = showAll ? items : items.slice(0, 4);
     return `<article class="card" data-id="${o.id}">
       <div class="row" tabindex="0" role="button" aria-label="${esc(o.shop || "طلب")}">
-        <div><div class="meta">طلب <span class="ltr">${esc(o.id)}</span>${fr}</div></div>
+        <div><div class="meta">طلب <span class="ltr">${esc(o.id)}</span>${fr}${o.supplyStage ? `<span class="stage">${STAGEL[o.supplyStage]}</span>` : ""}</div></div>
         <div class="qty c-qty"><b class="num">${o.models || 0}</b> موديل · <b class="num">${o.pieces || 0}</b> قطعة</div>
         <div class="meta c-date">${fmtWhen(o.receivedAt)}${o.followUp && OPEN.has(o.status) ? `<br>متابعة ${fmtDate(o.followUp)}` : ""}</div>
         <label class="tick c-tick${o.replied ? " on" : ""}" data-stop><input type="checkbox" data-reply="${o.id}"${o.replied ? " checked" : ""}${canWrite ? "" : " disabled"}>رديت</label>
@@ -363,12 +403,75 @@ async function load(){
   try {
     const list = JSON.parse(await api("listOrders"));
     if (seen) { const fresh = list.filter(o => !seen.has(o.id)).length; if (fresh) toast(fresh === 1 ? "وصل طلب جديد" : `وصلوا ${fresh} طلبات جديدة`); }
-    seen = new Set(list.map(o => o.id)); ORDERS = list; renderList();
+    seen = new Set(list.map(o => o.id)); ORDERS = list; renderList(); renderAlt();
     $("synced").textContent = "آخر تحديث " + new Date().toLocaleTimeString("ar-JO-u-nu-latn", {hour: "numeric", minute: "2-digit"});
     $("banner").hidden = true;
     const n = ORDERS.filter(o => o.status === "new").length; document.title = (n ? `(${n}) ` : "") + "NG SPHERE · الطلبات";
   } catch (e) { const b = $("banner"); b.textContent = "ما قدرت أحمّل الطلبات. تأكد إنك فاتح الصفحة بحساب Google تبعك، وحدّث."; b.hidden = false; }
 }
+
+function numOrBlank(v){ const s = String(v || "").replace(",", ".").trim(); return s === "" ? "" : (+s || 0); }
+
+// ---------- other views ----------
+let VIEW = "orders", STATS = null, VSORT = {};
+function setView(v){
+  VIEW = v; document.querySelectorAll("#views button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v));
+  $("vOrders").hidden = v !== "orders"; $("vAlt").hidden = v === "orders";
+  if (v === "models" && !STATS) loadStats(); renderAlt();
+}
+async function loadStats(){ try { STATS = JSON.parse(await api("listStats")); } catch (e) { STATS = {}; } renderAlt(); }
+function table(cols, rows, key){
+  const s = VSORT[key] || {i: cols.findIndex(c => c[2]), d: -1};
+  const sorted = rows.slice().sort((a, b) => { const x = a[s.i].v, y = b[s.i].v; return (x > y ? 1 : x < y ? -1 : 0) * s.d; });
+  return `<div class="tblWrap"><table class="tbl"><thead><tr>${cols.map((c, i) => `<th data-sort="${key}:${i}">${c[0]}${i === s.i ? (s.d < 0 ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead><tbody>${
+    sorted.map(r => `<tr>${r.map((c, i) => `<td class="${cols[i][1] ? "n" : ""}">${c.h}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+const cell = (v, h) => ({v, h: h == null ? esc(v) : h});
+function renderAlt(){
+  const el = $("vAlt"); if (VIEW === "orders") return;
+  const live = ORDERS.filter(o => o.status !== "cancelled");
+  if (VIEW === "shops") {
+    const g = {};
+    live.forEach(o => { const k = keyOfPhone(o.phone), s = g[k] = g[k] || {shop: "", city: "", phone: o.phone, n: 0, pieces: 0, sale: 0, done: 0, last: ""};
+      s.n++; s.pieces += +o.pieces || 0; s.sale += +o.sale || 0; if (o.status === "delivered") s.done++;
+      if (!s.last || o.receivedAt > s.last) { s.last = o.receivedAt; s.shop = o.shop || s.shop; s.city = o.city || s.city; } });
+    const rows = Object.entries(g).map(([k, s]) => [cell(s.shop || "—"), cell(s.city || "—"), cell(phoneFmt(s.phone), `<span class="ltr">${esc(phoneFmt(s.phone))}</span>`),
+      cell(s.n), cell(s.done), cell(s.pieces), cell(s.sale, s.sale ? jd(s.sale) : "—"), cell(s.last || "", fmtWhen(s.last)),
+      cell(0, `<button class="linkbtn" type="button" data-shopq="${esc(phoneFmt(s.phone))}">طلباته</button>${s.phone ? ` · <a class="linkbtn" target="_blank" rel="noopener" href="${esc(waOf(s.phone))}">واتساب</a>` : ""}`)]);
+    el.innerHTML = rows.length ? `<p class="note">${rows.length} محل · المحل اللي بيرجع يطلب هو أغلى زبون عندك.</p>` + table([["المحل"], ["المدينة"], ["التلفون"], ["طلبات", 1, 1], ["تسلّم", 1], ["قطع", 1], ["مبيعات", 1], ["آخر طلب", 0], [""]], rows, "shops")
+      : `<div class="empty"><p>ما في محلات لسا.</p></div>`;
+  }
+  if (VIEW === "models") {
+    if (!STATS) { el.innerHTML = `<div class="empty"><p>جاري تحميل الإحصائيات…</p></div>`; return; }
+    const rows = Object.entries(STATS).map(([code, s]) => [cell(code, `${s.img ? `<img src="${IMG}${esc(s.img)}_220x220.jpg" alt="" referrerpolicy="no-referrer"> ` : ""}<span class="ltr">${esc(code)}</span>`),
+      cell(s.name || ""), cell(s.views), cell(s.adds), cell(s.orders), cell(s.pieces), cell(s.views ? s.adds / s.views : 0, s.views ? Math.round(s.adds / s.views * 100) + "٪" : "—")]);
+    el.innerHTML = `<p class="note">مشاهدات وإضافات للسلة من الموقع، وطلبات من الطلبات الواصلة (غير الملغية). <button class="linkbtn" type="button" id="reStats">حدّث</button></p>` +
+      (rows.length ? table([["الكود"], ["الاسم"], ["شافوه", 1, 1], ["أضافوه", 1], ["طلبات", 1], ["قطع", 1], ["نسبة الإضافة", 1]], rows, "models") : `<div class="empty"><p>لسا ما في بيانات. بتبلش تتجمع أول ما الناس تفتح الموديلات على الموقع.</p></div>`);
+    const r = $("reStats"); if (r) r.onclick = () => { STATS = null; loadStats(); };
+  }
+  if (VIEW === "money") {
+    const withNums = live.filter(o => o.sale !== "" && o.sale != null);
+    const sum = (a, k) => a.reduce((x, o) => x + (+o[k] || 0), 0);
+    const sale = sum(withNums, "sale"), cost = sum(withNums, "cost");
+    const pending = live.filter(o => OPEN.has(o.status) && o.quote).reduce((x, o) => x + (+String(o.quote).replace(/[^0-9.]/g, "") || 0), 0);
+    const byStage = STAGES.slice(1).map(([k, n]) => [n, live.filter(o => o.supplyStage === k && o.status !== "delivered").length]);
+    const rows = withNums.map(o => [cell(o.id, `<span class="ltr">${esc(o.id)}</span>`), cell(o.shop || "—"), cell(o.receivedAt || "", fmtDate(o.receivedAt)), cell(SLABEL[o.status] || ""),
+      cell(+o.cost || 0, o.cost === "" ? "—" : jd(o.cost)), cell(+o.sale || 0, jd(o.sale)), cell((+o.sale || 0) - (+o.cost || 0), o.cost === "" ? "—" : jd(o.sale - o.cost))]);
+    el.innerHTML = `<div class="money">
+        <div><span>المبيعات</span><b>${jd(sale)}</b></div><div><span>التكلفة</span><b>${jd(cost)}</b></div>
+        <div><span>الربح</span><b>${jd(sale - cost)}</b>${sale ? `<span>${Math.round((sale - cost) / sale * 100)}٪ هامش</span>` : ""}</div>
+        <div><span>عروض مفتوحة</span><b>${jd(pending)}</b></div>
+        ${byStage.map(([n, c]) => `<div><span>${n}</span><b>${c}</b></div>`).join("")}
+      </div>` + (rows.length ? table([["الطلب"], ["المحل"], ["التاريخ", 0, 1], ["الحالة"], ["التكلفة", 1], ["البيع", 1], ["الربح", 1]], rows, "money")
+      : `<div class="empty"><p>عبّي «التكلفة» و«البيع» بتفاصيل كل طلب، وبتطلع الأرباح هون.</p></div>`);
+  }
+}
+$("views").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) setView(b.dataset.v); });
+$("vAlt").addEventListener("click", e => {
+  const th = e.target.closest("[data-sort]");
+  if (th) { const [k, i] = th.dataset.sort.split(":"); const s = VSORT[k]; VSORT[k] = {i: +i, d: s && s.i === +i ? -s.d : -1}; renderAlt(); return; }
+  const sq = e.target.closest("[data-shopq]"); if (sq) { $("q").value = sq.dataset.shopq.replace(/^0/, ""); fStatus = ""; setView("orders"); renderList(); }
+});
 
 // ---------- sheet: order detail ----------
 function openOrder(id){
@@ -389,6 +492,15 @@ function openOrder(id){
       <label class="fld"><span>قيمة العرض (د.أ)</span><input id="dQuote" type="text" inputmode="decimal" dir="ltr" value="${esc(o.quote)}"></label>
       <label class="fld"><span>وصل بتاريخ</span><input id="dDate" type="date" value="${(o.receivedAt || "").slice(0, 10)}"></label>
     </div>
+    <div class="sec"><h3>مرحلة البضاعة</h3>
+      <div class="stageRow">${STAGES.map(([k, n]) => `<button type="button" data-stage="${k}" aria-pressed="${(o.supplyStage || "") === k}"${canWrite ? "" : " disabled"}>${n}</button>`).join("")}</div></div>
+    <div class="grid2">
+      <label class="fld"><span>التكلفة عليك (د.أ)</span><input id="dCost" type="text" inputmode="decimal" dir="ltr" value="${esc(o.cost)}" placeholder="بضاعة + شحن"></label>
+      <label class="fld"><span>البيع للمحل (د.أ)</span><input id="dSale" type="text" inputmode="decimal" dir="ltr" value="${esc(o.sale)}"></label>
+    </div>
+    ${o.cost !== "" && o.sale !== "" && o.cost != null && o.sale != null ? `<p class="note" style="margin:0">الربح: <b>${jd(o.sale - o.cost)}</b>${+o.sale ? ` · ${Math.round((o.sale - o.cost) / o.sale * 100)}٪` : ""}</p>` : ""}
+    ${o.phone ? `<div class="sec"><h3>رد سريع على واتساب</h3><div class="qr">${quickReplies(o).map(([n, txt]) => `<a class="btn sm ghost" target="_blank" rel="noopener" href="${esc(waText(o.phone, txt))}">${n}</a>`).join("")}</div>
+      <p class="note" style="margin:6px 0 0">بيفتح المحادثة والرسالة جاهزة، بتعدّل عليها قبل ما تبعت.</p></div>` : ""}
     ${o.customerNotes ? `<div class="parsed"><b>ملاحظة التاجر:</b> ${esc(o.customerNotes)}</div>` : ""}
     <p class="note" style="margin:0">رقم الطلب: <span class="ltr">${esc(o.id)}</span></p>
     <label class="fld"><span>ملاحظاتك</span><textarea id="dNotes" style="min-height:70px">${esc(o.notes)}</textarea></label>
@@ -401,6 +513,10 @@ function openOrder(id){
   $("shFoot").innerHTML = `<button class="btn solid" id="dSave" type="button"${canWrite ? "" : " disabled"}>احفظ التعديلات</button><span style="flex:1"></span><button class="linkbtn danger" id="dDel" type="button"${canWrite ? "" : " disabled"}>احذف الطلب</button>`;
   $("shBody").querySelectorAll("[data-set]").forEach(b => b.onclick = async () => { await setStatus(id, b.dataset.set); openOrder(id); });
   $("dReplied").onchange = async e => { await setReplied(id, e.target.checked); openOrder(id); };
+  $("shBody").querySelectorAll("[data-stage]").forEach(b => b.onclick = async () => { const s = b.dataset.stage;
+    const patch = {supplyStage: s}; if (s && (o.status === "new" || o.status === "waiting" || o.status === "confirmed")) patch.status = "processing";
+    if (s === "" && o.status === "processing") patch.status = "confirmed";
+    await save(id, patch, "البضاعة: " + STAGEL[s]); openOrder(id); });
   const copyBtn = $("dCopy");
   if (copyBtn) copyBtn.onclick = async () => {
     const txt = o.items.map(i => `${i.code} ${Object.entries(i.sizes || {}).map(([s, n]) => `${s}x${n}`).join(" ")} (${i.total})`).join("\n");
@@ -408,7 +524,8 @@ function openOrder(id){
   };
   $("dSave").onclick = async () => {
     const q = $("dQuote").value.trim(), patch = {shop: $("dShop").value.trim(), city: $("dCity").value.trim(), phone: $("dPhone").value.trim(),
-      followUp: $("dFollow").value, quote: q, notes: $("dNotes").value.trim(), receivedAt: new Date($("dDate").value || today()).toISOString()};
+      followUp: $("dFollow").value, quote: q, notes: $("dNotes").value.trim(), receivedAt: new Date($("dDate").value || today()).toISOString(),
+      cost: numOrBlank($("dCost").value), sale: numOrBlank($("dSale").value)};
     const msg = [];
     if (patch.followUp !== (o.followUp || "")) msg.push(patch.followUp ? `موعد متابعة ${fmtDate(patch.followUp)}` : "شلت موعد المتابعة");
     if (q !== (o.quote || "") && q) msg.push(`عرض سعر ${q} د.أ`);
