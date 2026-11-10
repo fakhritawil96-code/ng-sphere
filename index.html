@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>NG SPHERE</title>
-<meta name="description" content="NG SPHERE — أزياء نسائية راقية في الأردن. تشكيلة جديدة كل أسبوع، والطلب مباشرة على واتساب.">
+<meta name="description" content="NG SPHERE — جملة أزياء نسائية للمحلات والبوتيكات في الأردن. اختر الموديلات والكميات وأرسل طلبك على واتساب.">
 <meta property="og:title" content="NG SPHERE">
-<meta property="og:description" content="تشكيلة جديدة كل أسبوع — اطلبي مباشرة على واتساب">
+<meta property="og:description" content="جملة أزياء نسائية للمحلات — موديلات جديدة كل أسبوع">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap">
@@ -115,6 +115,46 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 .note{color:var(--muted);text-align:center;padding-block:30px}
 .moreWrap{display:flex;justify-content:center;padding-bottom:48px}
 .grid{padding-bottom:28px}
+.terms{text-align:center;color:var(--muted);font-size:13.5px;margin:22px auto 0;max-width:60ch}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.sizes{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sizes legend{font-size:13px;color:var(--muted);padding:0;margin-bottom:6px}
+.sizegrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sz{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0}
+.sz span{text-align:center;font:500 12px var(--serif);letter-spacing:.06em;direction:ltr}
+.sz input,.fld input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--ivory);color:var(--ink);border-radius:2px;padding:8px 6px;font:500 15px var(--sans);text-align:center;font-variant-numeric:tabular-nums}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.fld input{text-align:start;padding:9px 10px;font-weight:400}
+.sz input:focus,.fld input:focus{outline:none;border-color:var(--ink)}
+.lbactions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lbactions .order{flex:1;border:0;background:var(--ink);color:var(--ivory);cursor:pointer;padding:11px}
+.linkbtn{border:0;background:none;color:var(--muted);font:400 13px var(--sans);text-decoration:underline;cursor:pointer;padding:6px}
+.hint{color:var(--rose);font-size:13px;margin:0}
+.incart{background:var(--rose-soft);color:var(--rose);font-size:12px;padding:2px 8px;border-radius:999px}
+.badge-in{position:absolute;bottom:8px;inset-inline-start:8px;background:var(--ink);color:var(--ivory);font-size:11px;padding:3px 7px;border-radius:2px}
+.cartbar{position:fixed;inset:auto 0 0;z-index:8;background:var(--ink);color:var(--ivory);padding-bottom:env(safe-area-inset-bottom,0px)}
+.cartbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;flex-wrap:wrap}
+.cartbar b{font-variant-numeric:tabular-nums}
+.cartbar .btn{border-color:var(--ivory);background:var(--ivory);color:var(--ink)}
+body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.cart{max-width:min(620px,96vw);max-height:92vh;display:none;flex-direction:column}
+.cart[open]{display:flex}
+.cartHead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);position:relative}
+.cartHead h2{margin:0;font-size:18px;font-weight:500}
+.cartHead .x{position:static;width:36px;height:36px;border-radius:50%;border:0;background:var(--rose-soft);color:var(--ink);font-size:20px;cursor:pointer}
+.cartList{overflow-y:auto;padding:6px 18px;flex:1 1 auto;min-height:80px}
+.crow{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
+.crow img{width:56px;height:74px;object-fit:cover;background:var(--rose-soft)}
+.crow .t{font-size:14px;font-weight:500;line-height:1.4}
+.crow .s{font-size:12.5px;color:var(--muted);direction:rtl}
+.crow .acts{display:flex;flex-direction:column;gap:2px;align-items:end}
+.cartForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:12px 18px;border-top:1px solid var(--line)}
+.cartFoot{padding:12px 18px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
+.cartFoot .sum{font-size:14px;color:var(--muted)}
+.cartFoot .sum b{color:var(--ink)}
+.order.big{background:var(--ink);color:var(--ivory);padding:12px;font-size:15px}
+.order.big[aria-disabled="true"]{opacity:.4;pointer-events:none}
+@media (max-width:420px){.sizegrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -125,7 +165,7 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
   <div class="wrap">
     <h1 class="mono" dir="ltr" aria-label="NG SPHERE">N<span>G</span></h1>
     <p class="word" dir="ltr">SPHERE</p>
-    <p class="tag">أزياء نسائية راقية، تشكيلة جديدة كل أسبوع وتوصيل داخل الأردن</p>
+    <p class="tag">جملة أزياء نسائية للمحلات والبوتيكات. أكثر من ٥٠٠٠ موديل، وموديلات جديدة كل أسبوع.</p>
     <div class="cta">
       <a class="btn solid" id="waTop" href="https://wa.me/962796199881" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z"/></svg>
@@ -144,22 +184,23 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 <main class="wrap">
   <div class="tools">
     <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="ابحثي بالكود أو الوصف، مثل: فستان أحمر، طقم دانتيل، 765526" autocomplete="off"></label>
+      <input id="q" type="search" placeholder="ابحث بالكود أو الوصف، مثل: فستان أحمر، طقم دانتيل، 765526" autocomplete="off"></label>
   </div>
-  <div class="meta"><span><b id="shown">…</b> قطعة</span><span>آخر تحديث: <span id="updated">…</span></span></div>
+  <div class="meta"><span><b id="shown">…</b> موديل</span><span>آخر تحديث: <span id="updated">…</span></span></div>
   <div class="grid" id="grid"></div>
-  <p class="note" id="empty" hidden>ما في قطع بهالبحث. جرّبي كلمة ثانية، مثل «فستان أحمر» أو «طقم دانتيل»، أو اختاري قسم.</p>
+  <p class="note" id="empty" hidden>ما في موديلات بهالبحث. جرّب كلمة ثانية، مثل «فستان أحمر» أو «طقم دانتيل»، أو اختار قسم.</p>
   <div class="moreWrap"><button class="btn" id="moreBtn" hidden>عرض المزيد</button></div>
 </main>
 
 <section class="how">
   <div class="wrap">
-    <h2>كيف تطلبين</h2>
+    <h2>كيف تطلب بالجملة</h2>
     <ol class="steps">
-      <li><strong>اختاري القطعة</strong><p>كل قطعة إلها كود، مثل NG-765526، مكتوب على صورتها.</p></li>
-      <li><strong>اضغطي «اطلبي على واتساب»</strong><p>بتنفتح رسالة جاهزة فيها اسم القطعة وكودها. ابعتيها مع المقاس واللون.</p></li>
-      <li><strong>منأكد معك ومنوصّلك</strong><p>منرد عليك بالسعر النهائي ومدة التوصيل، وبعد التأكيد منجهّز طلبك.</p></li>
+      <li><strong>اختار الموديلات</strong><p>افتح أي موديل وحدد الكمية من كل مقاس، واضغط «أضف للطلب». كرر لكل الموديلات اللي بدك ياها.</p></li>
+      <li><strong>راجع طلبك وابعته</strong><p>من شريط «طلبك» تحت، راجع الموديلات والكميات، واكتب اسم المحل والمدينة، وابعت الطلب كله برسالة واتساب وحدة.</p></li>
+      <li><strong>منرد عليك بعرض سعر</strong><p>منبعتلك سعر الجملة لكل موديل ومدة التوصيل وطريقة الدفع، وبعد ما تأكد منجهّز الطلب.</p></li>
     </ol>
+    <p class="terms">ما في حد أدنى للطلب. البضاعة بتوصل من المصنع، والمدة الدقيقة منأكدها مع عرض السعر.</p>
   </div>
 </section>
 
@@ -178,8 +219,40 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
   <div class="thumbs" id="lbthumbs"></div>
   <div class="body">
     <div class="nm" id="lbname"></div>
-    <div class="sub"><span id="lbcode"></span><span id="lbprice"></span></div>
-    <a class="order" id="lborder" target="_blank" rel="noopener">اطلبي على واتساب</a>
+    <div class="sub"><span id="lbcode" class="ltr"></span><span id="lbin" class="incart" hidden>بطلبك</span></div>
+    <fieldset class="sizes">
+      <legend>الكمية من كل مقاس</legend>
+      <div class="sizegrid" id="sizegrid"></div>
+    </fieldset>
+    <label class="fld"><span>ملاحظة (لون، مقاس ثاني…)</span><input id="lbnote" type="text" autocomplete="off" placeholder="اختياري"></label>
+    <div class="lbactions">
+      <button class="order" id="lbadd" type="button">أضف للطلب</button>
+      <button class="linkbtn" id="lbremove" type="button" hidden>شيل من الطلب</button>
+    </div>
+    <p class="hint" id="lbhint" hidden>حدد الكمية من مقاس واحد على الأقل.</p>
+  </div>
+</dialog>
+
+<div class="cartbar" id="cartbar" hidden>
+  <div class="wrap">
+    <span><b id="cbModels">0</b> موديل · <b id="cbPieces">0</b> قطعة</span>
+    <button class="btn solid" id="cbOpen" type="button">راجع الطلب وأرسله</button>
+  </div>
+</div>
+
+<dialog id="cart" class="cart" aria-label="طلبك">
+  <div class="cartHead"><h2>طلبك</h2><button class="x" id="cartx" aria-label="إغلاق">×</button></div>
+  <div class="cartList" id="cartList"></div>
+  <div class="cartForm">
+    <label class="fld"><span>اسم المحل</span><input id="shop" type="text" autocomplete="organization"></label>
+    <label class="fld"><span>المدينة</span><input id="city" type="text" autocomplete="address-level2"></label>
+    <label class="fld"><span>ملاحظات على الطلب</span><input id="onote" type="text" autocomplete="off" placeholder="اختياري"></label>
+  </div>
+  <div class="cartFoot">
+    <div class="sum"><b id="ctModels">0</b> موديل · <b id="ctPieces">0</b> قطعة</div>
+    <a class="order big" id="sendWa" target="_blank" rel="noopener">أرسل الطلب على واتساب</a>
+    <p class="hint" id="sentNote" hidden>إذا ما انفتح واتساب، ابعت رقم <span class="ltr">0796 199 881</span> رسالة فيها أكواد الموديلات والكميات.</p>
+    <button class="linkbtn" id="clearCart" type="button">إفراغ الطلب</button>
   </div>
 </dialog>
 
@@ -192,10 +265,8 @@ const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let P = [];
 const label = p => p.name + (p.color ? " – " + p.color : "");
-const priceHtml = p => p.jod ? `<span class="price">${p.jod} د.أ</span>` : `<span class="price ask">السعر على واتساب</span>`;
-const waLink = p => "https://wa.me/" + WA + "?text=" + encodeURIComponent(`مرحبا NG SPHERE، حابة أطلب:\n${label(p)}\nكود القطعة: ${p.code}\nالمقاس: \nاللون: `);
 
-document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي استفسار");
+document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي محل وبدي أستفسر عن الجملة");
 
 let cur = "all", q = "", list = [], shownN = 0;
 try { const h = location.hash.slice(1); if (CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
@@ -210,15 +281,16 @@ function chips(){
 document.getElementById("chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; try { history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); } catch(e) {} chips(); filter(); };
 
 function card(p){
-  return `<article class="item">
+  const inC = CART[p.code];
+  return `<article class="item" data-code="${p.code}">
       <button class="ph" data-i="${p.i}" aria-label="عرض ${esc(label(p))}">
         <img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.imgs[0]}'">
         <span class="code">${p.code}</span>
         ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور</span>` : ""}
+        ${inC ? `<span class="badge-in">بطلبك · ${pieces(inC)} قطعة</span>` : ""}
       </button>
       <h3 class="nm">${esc(label(p))}</h3>
-      <div class="sub">${priceHtml(p)}</div>
-      <a class="order" href="${waLink(p)}" target="_blank" rel="noopener">${waIcon}اطلبي على واتساب</a>
+      <button class="order add" data-i="${p.i}" type="button">${inC ? "عدّل الكمية" : "أضف للطلب"}</button>
     </article>`;
 }
 const norm = s => String(s || "").toLowerCase()
@@ -274,27 +346,105 @@ let tx = null;
 document.getElementById("lbimg").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {passive:true});
 document.getElementById("lbimg").addEventListener("touchend", e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) show(gi + (dx > 0 ? 1 : -1)); tx = null; });
 lb.addEventListener("keydown", e => { if (e.key === "ArrowLeft") show(gi + 1); if (e.key === "ArrowRight") show(gi - 1); });
-document.getElementById("grid").addEventListener("click", e => {
-  const b = e.target.closest(".ph"); if (!b) return;
-  const p = P[+b.dataset.i];
+let curP = null;
+const SIZES = ["S","M","L","XL","XXL"];
+function openItem(p){
+  curP = p;
   gal = p.imgs; gi = 0;
   document.getElementById("lbimg").alt = label(p);
   document.getElementById("lbthumbs").innerHTML = gal.length > 1 ? gal.map((u,k) => `<button data-k="${k}" aria-label="صورة ${k+1}"><img src="${u}_220x220.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("") : "";
   show(0);
   document.getElementById("lbname").textContent = label(p);
   document.getElementById("lbcode").textContent = p.code;
-  document.getElementById("lbprice").innerHTML = priceHtml(p);
-  document.getElementById("lborder").href = waLink(p);
+  const c = CART[p.code] || {q:{}, note:""};
+  document.getElementById("sizegrid").innerHTML = SIZES.map(s => `<label class="sz"><span>${s}</span><input type="number" inputmode="numeric" min="0" step="1" id="q-${s}" value="${c.q[s] || ""}" placeholder="0"></label>`).join("");
+  document.getElementById("lbnote").value = c.note || "";
+  document.getElementById("lbin").hidden = !CART[p.code];
+  document.getElementById("lbremove").hidden = !CART[p.code];
+  document.getElementById("lbadd").textContent = CART[p.code] ? "حدّث الكمية" : "أضف للطلب";
+  document.getElementById("lbhint").hidden = true;
   lb.showModal();
+}
+document.getElementById("grid").addEventListener("click", e => {
+  const b = e.target.closest(".ph, .add"); if (!b) return;
+  openItem(P[+b.dataset.i]);
 });
+document.getElementById("lbadd").onclick = () => {
+  const q = {};
+  SIZES.forEach(s => { const v = parseInt(document.getElementById("q-" + s).value, 10); if (v > 0) q[s] = v; });
+  const note = document.getElementById("lbnote").value.trim();
+  if (!Object.keys(q).length) { document.getElementById("lbhint").hidden = false; return; }
+  CART[curP.code] = {q, note, name: label(curP), img: curP.imgs[0]};
+  saveCart(); refreshCard(curP.code); lb.close();
+};
+document.getElementById("lbremove").onclick = () => { delete CART[curP.code]; saveCart(); refreshCard(curP.code); lb.close(); };
 document.getElementById("lbx").onclick = () => lb.close();
 lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
 
-fetch("products.json?v=1794315560").then(r => r.json()).then(d => {
+let CART = {};
+try { CART = JSON.parse(localStorage.getItem("ngCart") || "{}") || {}; } catch(e) { CART = {}; }
+const pieces = c => Object.values(c.q).reduce((a, b) => a + b, 0);
+function saveCart(){
+  try { localStorage.setItem("ngCart", JSON.stringify(CART)); } catch(e) {}
+  const codes = Object.keys(CART), n = codes.reduce((a, k) => a + pieces(CART[k]), 0);
+  document.getElementById("cartbar").hidden = !codes.length;
+  document.body.classList.toggle("hascart", codes.length > 0);
+  document.getElementById("cbModels").textContent = document.getElementById("ctModels").textContent = codes.length;
+  document.getElementById("cbPieces").textContent = document.getElementById("ctPieces").textContent = n;
+  renderCart();
+}
+function refreshCard(code){
+  const el = document.querySelector(`.item[data-code="${code}"]`);
+  const p = P.find(x => x.code === code);
+  if (el && p) el.outerHTML = card(p);
+}
+function renderCart(){
+  const codes = Object.keys(CART);
+  document.getElementById("cartList").innerHTML = codes.length ? codes.map(k => {
+    const c = CART[k];
+    const sz = Object.entries(c.q).map(([s, n]) => `${s}×${n}`).join("  ");
+    return `<div class="crow"><img src="${c.img}_220x220.jpg" alt="" referrerpolicy="no-referrer">
+      <div><div class="t">${esc(c.name)}</div><div class="s"><span class="ltr">${k}</span> · <span class="ltr">${sz}</span>${c.note ? " · " + esc(c.note) : ""}</div></div>
+      <div class="acts"><button class="linkbtn" data-edit="${k}" type="button">تعديل</button><button class="linkbtn" data-del="${k}" type="button">شيل</button></div></div>`;
+  }).join("") : '<p class="note">طلبك فاضي. افتح أي موديل واضغط «أضف للطلب».</p>';
+  const send = document.getElementById("sendWa");
+  send.setAttribute("aria-disabled", codes.length ? "false" : "true");
+  send.href = codes.length ? "https://wa.me/" + WA + "?text=" + encodeURIComponent(orderText()) : "#";
+}
+function orderText(){
+  const shop = document.getElementById("shop").value.trim(), city = document.getElementById("city").value.trim(), on = document.getElementById("onote").value.trim();
+  const codes = Object.keys(CART);
+  const lines = codes.map((k, i) => {
+    const c = CART[k]; const sz = Object.entries(c.q).map(([s, n]) => `${s}×${n}`).join(" ");
+    return `${i + 1}) ${k} – ${c.name}\n   ${sz} (المجموع ${pieces(c)})${c.note ? "\n   ملاحظة: " + c.note : ""}`;
+  });
+  const total = codes.reduce((a, k) => a + pieces(CART[k]), 0);
+  return `مرحبا NG SPHERE، طلب جملة:\n${shop ? "المحل: " + shop + "\n" : ""}${city ? "المدينة: " + city + "\n" : ""}\n${lines.join("\n")}\n\nالمجموع: ${codes.length} موديل، ${total} قطعة${on ? "\nملاحظات: " + on : ""}\n\nبدي عرض سعر ومدة التوصيل.`;
+}
+const cartDlg = document.getElementById("cart");
+document.getElementById("cbOpen").onclick = () => { renderCart(); cartDlg.showModal(); };
+document.getElementById("cartx").onclick = () => cartDlg.close();
+cartDlg.addEventListener("click", e => { if (e.target === cartDlg) cartDlg.close(); });
+["shop","city","onote"].forEach(id => { const el = document.getElementById(id);
+  try { el.value = localStorage.getItem("ng_" + id) || ""; } catch(e) {}
+  el.addEventListener("input", () => { try { localStorage.setItem("ng_" + id, el.value); } catch(e) {} renderCart(); }); });
+document.getElementById("cartList").addEventListener("click", e => {
+  const d = e.target.closest("[data-del]"), ed = e.target.closest("[data-edit]");
+  if (d) { delete CART[d.dataset.del]; saveCart(); refreshCard(d.dataset.del); }
+  if (ed) { const p = P.find(x => x.code === ed.dataset.edit); if (p) { cartDlg.close(); openItem(p); } }
+});
+document.getElementById("sendWa").addEventListener("click", () => { document.getElementById("sentNote").hidden = false; });
+document.getElementById("clearCart").onclick = () => {
+  const b = document.getElementById("clearCart");
+  if (b.dataset.armed) { const ks = Object.keys(CART); CART = {}; saveCart(); ks.forEach(refreshCard); b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }
+  else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
+};
+
+fetch("products.json?v=1794315767").then(r => r.json()).then(d => {
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h)})).filter(p => p.imgs.length);
   P.forEach((p, i) => p.i = i);
   document.getElementById("updated").textContent = d.updated;
-  chips(); filter();
+  chips(); filter(); saveCart();
 }).catch(() => {
   document.getElementById("grid").innerHTML = '<p class="note">تعذّر تحميل القطع. حدّثي الصفحة أو راسلينا على واتساب.</p>';
 });
