@@ -277,7 +277,7 @@ document.getElementById("grid").addEventListener("click", e => {
 document.getElementById("lbx").onclick = () => lb.close();
 lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
 
-fetch("products.json?v=1794312394").then(r => r.json()).then(d => {
+fetch("products.json?v=1794313771").then(r => r.json()).then(d => {
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h)})).filter(p => p.imgs.length);
   P.forEach((p, i) => p.i = i);
   document.getElementById("updated").textContent = d.updated;
