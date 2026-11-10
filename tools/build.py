@@ -126,6 +126,11 @@ def jod_price(p):
 
 # ---------- build ----------
 raw = json.load(open(args.src))
+# gallery.json: {product_id: ["Hxxxx.jpg", ...]} pulled from each product page (optional)
+try:
+    GAL = json.load(open("gallery.json"))
+except FileNotFoundError:
+    GAL = {}
 products = []
 for pid, title, price, moq, img in raw:
     name, cat, color = arabic_name(title)
@@ -133,6 +138,7 @@ for pid, title, price, moq, img in raw:
     products.append({
         "code": code, "name": name, "cat": cat, "color": color,
         "img": IMG_BASE + img, "jod": jod_price(price),
+        "gal": [IMG_BASE + g for g in GAL.get(pid, [])],
         "_title": title, "_price": price, "_moq": moq,
         "_url": f"https://www.alibaba.com/product-detail/_{pid}.html",
     })

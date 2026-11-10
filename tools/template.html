@@ -98,6 +98,15 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 .lb .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px}
 .lb .x{position:absolute;top:10px;inset-inline-end:10px;width:36px;height:36px;border-radius:50%;border:0;background:var(--paper);color:var(--ink);font-size:20px;cursor:pointer}
 .lb .order{background:var(--ink);color:var(--ivory)}
+.stage{position:relative}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:0;background:color-mix(in srgb,var(--paper) 85%,transparent);color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+.nav.prev{inset-inline-start:10px}.nav.next{inset-inline-end:10px}
+.count{position:absolute;bottom:10px;inset-inline-end:10px;background:color-mix(in srgb,var(--paper) 85%,transparent);font-size:12px;padding:2px 8px;border-radius:999px;font-variant-numeric:tabular-nums;direction:ltr}
+.thumbs{display:flex;gap:6px;overflow-x:auto;padding:8px 18px 0;scrollbar-width:thin}
+.thumbs button{flex:none;width:52px;height:68px;padding:0;border:1px solid var(--line);background:var(--rose-soft);cursor:pointer;border-radius:2px;overflow:hidden}
+.thumbs button[aria-current="true"]{border:2px solid var(--ink)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.more{position:absolute;bottom:8px;inset-inline-end:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font-size:11px;padding:3px 7px;border-radius:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -145,7 +154,13 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 
 <dialog id="lb" class="lb" aria-label="تفاصيل القطعة">
   <button class="x" id="lbx" aria-label="إغلاق">×</button>
-  <img id="lbimg" alt="" referrerpolicy="no-referrer">
+  <div class="stage">
+    <img id="lbimg" alt="" referrerpolicy="no-referrer">
+    <button class="nav prev" id="lbprev" aria-label="الصورة السابقة">›</button>
+    <button class="nav next" id="lbnext" aria-label="الصورة التالية">‹</button>
+    <span class="count" id="lbcount"></span>
+  </div>
+  <div class="thumbs" id="lbthumbs"></div>
   <div class="body">
     <div class="nm" id="lbname"></div>
     <div class="sub"><span id="lbcode"></span><span id="lbprice"></span></div>
@@ -185,6 +200,7 @@ function render(){
       <button class="ph" data-i="${P.indexOf(p)}" aria-label="عرض ${esc(label(p))}">
         <img src="${thumb(p)}" alt="${esc(label(p))}" loading="${i<8?"eager":"lazy"}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.img}'">
         <span class="code">${p.code}</span>
+        ${p.gal && p.gal.length > 1 ? `<span class="more">${p.gal.length} صور</span>` : ""}
       </button>
       <h3 class="nm">${esc(label(p))}</h3>
       <div class="sub">${priceHtml(p)}</div>
@@ -192,11 +208,29 @@ function render(){
     </article>`).join("");
 }
 const lb = document.getElementById("lb");
+let gal = [], gi = 0;
+function show(k){
+  gi = (k + gal.length) % gal.length;
+  const im = document.getElementById("lbimg");
+  im.src = gal[gi] + "_960x960.jpg"; im.onerror = () => { im.onerror = null; im.src = gal[gi]; };
+  document.getElementById("lbcount").textContent = gal.length > 1 ? `${gi+1} / ${gal.length}` : "";
+  document.getElementById("lbprev").hidden = document.getElementById("lbnext").hidden = gal.length < 2;
+  document.querySelectorAll("#lbthumbs button").forEach(b => b.setAttribute("aria-current", +b.dataset.k === gi));
+}
+document.getElementById("lbprev").onclick = () => show(gi - 1);
+document.getElementById("lbnext").onclick = () => show(gi + 1);
+document.getElementById("lbthumbs").onclick = e => { const b = e.target.closest("button"); if (b) show(+b.dataset.k); };
+let tx = null;
+document.getElementById("lbimg").addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {passive:true});
+document.getElementById("lbimg").addEventListener("touchend", e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) show(gi + (dx > 0 ? 1 : -1)); tx = null; });
+lb.addEventListener("keydown", e => { if (e.key === "ArrowLeft") show(gi + 1); if (e.key === "ArrowRight") show(gi - 1); });
 document.getElementById("grid").addEventListener("click", e => {
   const b = e.target.closest(".ph"); if (!b) return;
   const p = P[+b.dataset.i];
-  document.getElementById("lbimg").src = p.img;
+  gal = (p.gal && p.gal.length) ? p.gal : [p.img]; gi = 0;
   document.getElementById("lbimg").alt = label(p);
+  document.getElementById("lbthumbs").innerHTML = gal.length > 1 ? gal.map((u,k) => `<button data-k="${k}" aria-label="صورة ${k+1}"><img src="${u}_220x220.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("") : "";
+  show(0);
   document.getElementById("lbname").textContent = label(p);
   document.getElementById("lbcode").textContent = p.code;
   document.getElementById("lbprice").innerHTML = priceHtml(p);
