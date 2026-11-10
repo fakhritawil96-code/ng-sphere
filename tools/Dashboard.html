@@ -214,6 +214,7 @@ function toast(t){ const el = $("toast"); el.textContent = t; el.hidden = false;
 let ORDERS = [], fStatus = "", canWrite = true;
 const OPENED = new Set();
 const IMG = "https://s.alicdn.com/@sc04/kf/";
+const waOf = p => "https://wa.me/962" + phoneFmt(p).replace(/\D/g, "").replace(/^0/, "");
 const phoneFmt = p => { const d = String(p || "").replace(/\D/g, ""); return /^7\d{8}$/.test(d) ? "0" + d : String(p || ""); };
 
 // ---------- follow-up logic ----------
@@ -311,7 +312,7 @@ function renderList(){
         <div class="kv"><span>المحل</span><b>${esc(o.shop || "—")}</b></div>
         <div class="kv"><span>المدينة</span><b>${esc(o.city || "—")}</b></div>
         <div class="kv"><span>التلفون</span><b class="ltr">${esc(phoneFmt(o.phone) || "—")}</b></div>
-        ${o.phone ? `<a class="btn sm ghost wa" href="https://wa.me/962${phoneFmt(o.phone).replace(/\D/g, "").replace(/^0/, "")}" target="_blank" rel="noopener" data-stop>واتساب المحل</a>` : ""}
+        ${o.phone ? `<a class="btn sm ghost wa" href="${waOf(o.phone)}" target="_blank" rel="noopener" data-stop>واتساب المحل</a>` : ""}
       </div>
       <div class="lines">
         ${list.map(i => `<div class="ln">
