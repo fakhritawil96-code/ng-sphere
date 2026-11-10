@@ -262,8 +262,8 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   <div class="cartDone" id="cartDone" hidden>
     <h3>وصلنا طلبك</h3>
     <p>رقم الطلب: <b class="ltr" id="doneId"></b></p>
-    <p>منرد عليك على واتساب بعرض السعر ومدة التوصيل. إذا بدك تتابع معنا هلق، ابعتلنا رسالة:</p>
-    <a class="order big" id="doneWa" target="_blank" rel="noopener">تابع على واتساب</a>
+    <p>انفتح واتساب ورسالة الطلب جاهزة، اضغط إرسال فيه. إذا ما انفتح:</p>
+    <a class="order big" id="doneWa" target="_blank" rel="noopener">افتح واتساب</a>
     <button class="linkbtn" id="doneClose" type="button">رجوع للموديلات</button>
   </div>
 </dialog>
@@ -451,32 +451,23 @@ document.getElementById("submitOrder").onclick = async () => {
   const digits = phone.replace(/\D/g, "");
   if (!shop || digits.length < 9) { hint.textContent = !shop ? "اكتب اسم المحل." : "اكتب رقم واتساب المحل حتى نقدر نرد عليك."; hint.hidden = false; return; }
   hint.hidden = true;
-  const btn = document.getElementById("submitOrder"); btn.disabled = true; btn.textContent = "عم نبعت الطلب…";
   const id = newId();
   const order = {id, shop, phone, city: document.getElementById("city").value.trim(), notes: document.getElementById("onote").value.trim(),
     items: Object.keys(CART).map(k => ({code: k, name: CART[k].name, note: CART[k].note || "", sizes: CART[k].q, img: String(CART[k].img || "").replace(IMG, "")}))};
-  const waText = orderText(id);
-  let ok = false;
-  if (!ORDERS_URL) {
-    btn.disabled = false; btn.textContent = "أرسل الطلب";
-    hint.innerHTML = '<a target="_blank" rel="noopener" href="https://wa.me/' + WA + '?text=' + encodeURIComponent(waText) + '">اضغط هون لإرسال الطلب على واتساب</a>';
-    hint.hidden = false; return;
+  const waUrl = "https://wa.me/" + WA + "?text=" + encodeURIComponent(orderText(id));
+  // 1) record the order in the background (keepalive survives leaving the page)
+  if (ORDERS_URL) {
+    try { fetch(ORDERS_URL, {method: "POST", keepalive: true, headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "create", order})}).catch(() => {}); } catch (e) {}
   }
-  try {
-    const r = await fetch(ORDERS_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({action: "create", order})});
-    const j = await r.json(); ok = !!j.ok;
-  } catch (e) { ok = false; }
-  btn.disabled = false; btn.textContent = "أرسل الطلب";
-  if (!ok) {
-    hint.innerHTML = 'ما وصل الطلب بسبب مشكلة بالاتصال. جرّب كمان مرة، أو <a target="_blank" rel="noopener" href="https://wa.me/' + WA + '?text=' + encodeURIComponent(waText) + '">ابعته على واتساب</a>.';
-    hint.hidden = false; return;
-  }
+  // 2) open WhatsApp with the order message straight away
+  const w = window.open(waUrl, "_blank"); try { if (w) w.opener = null; } catch (e) {}
   document.getElementById("doneId").textContent = id;
-  document.getElementById("doneWa").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(waText);
+  document.getElementById("doneWa").href = waUrl;
   const ks = Object.keys(CART); CART = {}; saveCart(); ks.forEach(refreshCard);
   try { localStorage.setItem("ng_onote", ""); } catch (e) {} document.getElementById("onote").value = "";
   document.querySelector(".cartList").hidden = document.querySelector(".cartForm").hidden = document.querySelector(".cartFoot").hidden = true;
   document.getElementById("cartDone").hidden = false;
+  if (!w) setTimeout(() => { location.href = waUrl; }, 150);
 };
 document.getElementById("doneClose").onclick = () => cartDlg.close();
 cartDlg.addEventListener("close", () => {
