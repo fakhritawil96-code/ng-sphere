@@ -107,6 +107,14 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 .thumbs button[aria-current="true"]{border:2px solid var(--ink)}
 .thumbs img{width:100%;height:100%;object-fit:cover}
 .more{position:absolute;bottom:8px;inset-inline-end:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font-size:11px;padding:3px 7px;border-radius:2px}
+.tools{padding-top:18px}
+.search{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:0 14px;max-width:520px}
+.search svg{width:18px;height:18px;color:var(--muted);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:400 14.5px var(--sans);padding:11px 0;outline:none}
+.search:focus-within{border-color:var(--ink)}
+.note{color:var(--muted);text-align:center;padding-block:30px}
+.moreWrap{display:flex;justify-content:center;padding-bottom:48px}
+.grid{padding-bottom:28px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -133,15 +141,21 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 <nav class="rail" aria-label="الأقسام"><div class="wrap" id="chips"></div></nav>
 
 <main class="wrap">
-  <div class="meta"><span><b id="shown">__COUNT__</b> قطعة</span><span>آخر تحديث: __UPDATED__</span></div>
+  <div class="tools">
+    <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="ابحثي بكود القطعة أو اللون، مثل 765526 أو أسود" autocomplete="off"></label>
+  </div>
+  <div class="meta"><span><b id="shown">…</b> قطعة</span><span>آخر تحديث: <span id="updated">…</span></span></div>
   <div class="grid" id="grid"></div>
+  <p class="note" id="empty" hidden>ما في قطع بهالبحث. جرّبي كود ثاني أو اختاري قسم.</p>
+  <div class="moreWrap"><button class="btn" id="moreBtn" hidden>عرض المزيد</button></div>
 </main>
 
 <section class="how">
   <div class="wrap">
     <h2>كيف تطلبين</h2>
     <ol class="steps">
-      <li><strong>اختاري القطعة</strong><p>كل قطعة إلها كود، مثل NG-12345، مكتوب على صورتها.</p></li>
+      <li><strong>اختاري القطعة</strong><p>كل قطعة إلها كود، مثل NG-765526، مكتوب على صورتها.</p></li>
       <li><strong>اضغطي «اطلبي على واتساب»</strong><p>بتنفتح رسالة جاهزة فيها اسم القطعة وكودها. ابعتيها مع المقاس واللون.</p></li>
       <li><strong>منأكد معك ومنوصّلك</strong><p>منرد عليك بالسعر النهائي ومدة التوصيل، وبعد التأكيد منجهّز طلبك.</p></li>
     </ol>
@@ -169,44 +183,67 @@ dialog::backdrop{background:rgb(10 9 9 / .72)}
 </dialog>
 
 <script>
-const P = __PRODUCTS__;
 const WA = "__WA__";
-const CATS = [["all","الكل"],["evening","فساتين سهرة"],["dresses","فساتين"],["sets","أطقم"],["jackets","جاكيتات وبليزرات"],["knit","تريكو"]];
+const IMG = "https://s.alicdn.com/@sc04/kf/";
+const PAGE = 48;
+const CATS = [["all","الكل"],["evening","فساتين سهرة"],["dresses","فساتين"],["sets","أطقم وجمبسوت"],["jackets","جاكيتات وبليزرات"],["tops","بلوزات وقمصان"],["bottoms","بناطيل وتنانير"],["knit","تريكو"],["modest","عبايات وقفاطين"]];
 const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let P = [];
 const label = p => p.name + (p.color ? " – " + p.color : "");
 const priceHtml = p => p.jod ? `<span class="price">${p.jod} د.أ</span>` : `<span class="price ask">السعر على واتساب</span>`;
 const waLink = p => "https://wa.me/" + WA + "?text=" + encodeURIComponent(`مرحبا NG SPHERE، حابة أطلب:\n${label(p)}\nكود القطعة: ${p.code}\nالمقاس: \nاللون: `);
-const thumb = p => p.img + "_480x480.jpg";
 
 document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي استفسار");
 
-let cur = "all";
+let cur = "all", q = "", list = [], shownN = 0;
 try { const h = location.hash.slice(1); if (CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
 
 function chips(){
   const el = document.getElementById("chips");
   el.innerHTML = CATS.map(([k,n]) => {
     const c = k === "all" ? P.length : P.filter(p => p.cat === k).length;
-    return c ? `<button class="chip" data-k="${k}" aria-pressed="${k===cur}">${n}<small>${c}</small></button>` : "";
+    return c ? `<button class="chip" data-k="${k}" aria-pressed="${k===cur}">${n}<small>${c.toLocaleString("en")}</small></button>` : "";
   }).join("");
-  el.onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); chips(); render(); };
 }
-function render(){
-  const list = cur === "all" ? P : P.filter(p => p.cat === cur);
-  document.getElementById("shown").textContent = list.length;
-  document.getElementById("grid").innerHTML = list.map((p,i) => `
-    <article class="item">
-      <button class="ph" data-i="${P.indexOf(p)}" aria-label="عرض ${esc(label(p))}">
-        <img src="${thumb(p)}" alt="${esc(label(p))}" loading="${i<8?"eager":"lazy"}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.img}'">
+document.getElementById("chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; try { history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); } catch(e) {} chips(); filter(); };
+
+function card(p){
+  return `<article class="item">
+      <button class="ph" data-i="${p.i}" aria-label="عرض ${esc(label(p))}">
+        <img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.imgs[0]}'">
         <span class="code">${p.code}</span>
-        ${p.gal && p.gal.length > 1 ? `<span class="more">${p.gal.length} صور</span>` : ""}
+        ${p.imgs.length > 1 ? `<span class="more">${p.imgs.length} صور</span>` : ""}
       </button>
       <h3 class="nm">${esc(label(p))}</h3>
       <div class="sub">${priceHtml(p)}</div>
       <a class="order" href="${waLink(p)}" target="_blank" rel="noopener">${waIcon}اطلبي على واتساب</a>
-    </article>`).join("");
+    </article>`;
 }
+function filter(){
+  const qq = q.trim().toUpperCase().replace(/^NG-?/, "");
+  list = P.filter(p => (cur === "all" || p.cat === cur) && (!qq || p.code.includes(qq) || p.name.includes(q.trim()) || p.color.includes(q.trim())));
+  shownN = 0;
+  document.getElementById("grid").innerHTML = "";
+  document.getElementById("shown").textContent = list.length.toLocaleString("en");
+  document.getElementById("empty").hidden = list.length > 0;
+  more();
+}
+function more(){
+  const next = list.slice(shownN, shownN + PAGE);
+  document.getElementById("grid").insertAdjacentHTML("beforeend", next.map(card).join(""));
+  shownN += next.length;
+  const btn = document.getElementById("moreBtn");
+  btn.hidden = shownN >= list.length;
+  btn.textContent = `عرض المزيد (${(list.length - shownN).toLocaleString("en")} قطعة)`;
+}
+document.getElementById("moreBtn").onclick = more;
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && shownN < list.length) more(); }, {rootMargin: "800px"}).observe(document.getElementById("moreBtn"));
+}
+let qt;
+document.getElementById("q").addEventListener("input", e => { clearTimeout(qt); qt = setTimeout(() => { q = e.target.value; filter(); }, 200); });
+
 const lb = document.getElementById("lb");
 let gal = [], gi = 0;
 function show(k){
@@ -227,7 +264,7 @@ lb.addEventListener("keydown", e => { if (e.key === "ArrowLeft") show(gi + 1); i
 document.getElementById("grid").addEventListener("click", e => {
   const b = e.target.closest(".ph"); if (!b) return;
   const p = P[+b.dataset.i];
-  gal = (p.gal && p.gal.length) ? p.gal : [p.img]; gi = 0;
+  gal = p.imgs; gi = 0;
   document.getElementById("lbimg").alt = label(p);
   document.getElementById("lbthumbs").innerHTML = gal.length > 1 ? gal.map((u,k) => `<button data-k="${k}" aria-label="صورة ${k+1}"><img src="${u}_220x220.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("") : "";
   show(0);
@@ -239,7 +276,15 @@ document.getElementById("grid").addEventListener("click", e => {
 });
 document.getElementById("lbx").onclick = () => lb.close();
 lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
-chips(); render();
+
+fetch("products.json?v=__VER__").then(r => r.json()).then(d => {
+  P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h)})).filter(p => p.imgs.length);
+  P.forEach((p, i) => p.i = i);
+  document.getElementById("updated").textContent = d.updated;
+  chips(); filter();
+}).catch(() => {
+  document.getElementById("grid").innerHTML = '<p class="note">تعذّر تحميل القطع. حدّثي الصفحة أو راسلينا على واتساب.</p>';
+});
 </script>
 </body>
 </html>
