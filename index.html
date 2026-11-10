@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NG SPHERE</title>
+<meta name="description" content="NG SPHERE — أزياء نسائية راقية في الأردن. تشكيلة جديدة كل أسبوع، والطلب مباشرة على واتساب.">
+<meta property="og:title" content="NG SPHERE">
+<meta property="og:description" content="تشكيلة جديدة كل أسبوع — اطلبي مباشرة على واتساب">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: boutique lookbook — monogram masthead, sticky category rail, 2→4 column garment grid with 3:4 portraits */
+:root{
+  --ivory:#fbf9f6;     /* page, from the logo's ground */
+  --paper:#ffffff;     /* card */
+  --ink:#141312;       /* monogram black */
+  --muted:#6f6863;
+  --line:#e7e1da;
+  --rose:#b0707f;      /* dusty rose, from the pink pieces in the feed */
+  --rose-soft:#f3e6e8;
+  --wa:#1f7a4d;
+  --serif:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ivory:#151312;--paper:#1d1a19;--ink:#f3eee8;--muted:#a59d96;--line:#302b29;--rose:#d79aa8;--rose-soft:#2e2225;--wa:#3fb07a;color-scheme:dark}}
+:root[data-theme="dark"]{--ivory:#151312;--paper:#1d1a19;--ink:#f3eee8;--muted:#a59d96;--line:#302b29;--rose:#d79aa8;--rose-soft:#2e2225;--wa:#3fb07a;color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%;display:block}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+
+/* masthead */
+.mast{text-align:center;padding-block:44px 28px;border-bottom:1px solid var(--line)}
+.mono{font-family:var(--serif);font-weight:400;font-size:clamp(64px,13vw,104px);line-height:.9;letter-spacing:-.04em;margin:0}
+.mono span{display:inline-block;transform:translateY(.08em);margin-inline-start:-.08em}
+.word{font-family:var(--serif);letter-spacing:.42em;font-size:13px;margin:14px 0 0;padding-inline-start:.42em}
+.tag{margin:18px auto 0;color:var(--muted);max-width:34ch;text-wrap:balance}
+.cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 18px;font:500 14px var(--sans);text-decoration:none;border:1px solid var(--ink);cursor:pointer;background:transparent;color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--ivory)}
+.btn svg{width:17px;height:17px;flex:none}
+
+/* category rail */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ivory)}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--ivory) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.rail .wrap{display:flex;gap:8px;overflow-x:auto;padding-block:12px;scrollbar-width:none}
+.rail .wrap::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 15px;font:400 14px var(--sans);cursor:pointer;white-space:nowrap}
+.chip small{color:var(--muted);font-variant-numeric:tabular-nums;margin-inline-start:4px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ivory);border-color:var(--ink)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.7}
+
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-block:22px 14px;color:var(--muted);font-size:13px}
+.meta b{color:var(--ink);font-weight:500}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px;padding-bottom:56px}
+@media (min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 20px}}
+@media (min-width:1040px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.item{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ph{position:relative;aspect-ratio:3/4;max-width:100%;background:var(--rose-soft);overflow:hidden;border:0;padding:0;cursor:zoom-in;border-radius:2px}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.ph:hover img{transform:scale(1.03)}
+.code{position:absolute;top:8px;inset-inline-start:8px;background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);font:500 11px/1 var(--serif);letter-spacing:.08em;padding:5px 7px;border-radius:2px;direction:ltr}
+.nm{font-weight:500;font-size:14.5px;line-height:1.5;margin:4px 0 0;text-wrap:balance}
+.sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
+.price{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.price.ask{font-weight:400;color:var(--rose)}
+.order{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ink);border-radius:999px;padding:8px 10px;font:500 13.5px var(--sans);text-decoration:none;color:var(--ink)}
+.order:hover{background:var(--ink);color:var(--ivory)}
+.order svg{width:15px;height:15px}
+
+/* how to order */
+.how{border-top:1px solid var(--line);padding-block:44px}
+.how h2{font-weight:500;font-size:20px;margin:0 0 20px;text-align:center}
+.steps{list-style:none;margin:0 auto;padding:0;display:grid;gap:14px;max-width:880px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));counter-reset:s}
+.steps li{counter-increment:s;background:var(--paper);border:1px solid var(--line);padding:18px;border-radius:2px;min-width:0}
+.steps li::before{content:counter(s);font:400 30px/1 var(--serif);color:var(--rose);display:block;margin-bottom:8px}
+.steps p{margin:0;color:var(--muted);font-size:14px}
+.steps strong{display:block;color:var(--ink);font-weight:500;margin-bottom:2px}
+
+footer{border-top:1px solid var(--line);padding-block:26px;text-align:center;color:var(--muted);font-size:13px}
+footer .ltr{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+
+/* lightbox */
+dialog{border:0;padding:0;background:var(--paper);color:var(--ink);max-width:min(560px,94vw);width:100%;border-radius:4px}
+dialog::backdrop{background:rgb(10 9 9 / .72)}
+.lb img{width:100%;max-height:72vh;object-fit:contain;background:var(--rose-soft)}
+.lb .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.lb .x{position:absolute;top:10px;inset-inline-end:10px;width:36px;height:36px;border-radius:50%;border:0;background:var(--paper);color:var(--ink);font-size:20px;cursor:pointer}
+.lb .order{background:var(--ink);color:var(--ivory)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <h1 class="mono" aria-label="NG SPHERE">N<span>G</span></h1>
+    <p class="word">SPHERE</p>
+    <p class="tag">أزياء نسائية راقية، تشكيلة جديدة كل أسبوع وتوصيل داخل الأردن</p>
+    <div class="cta">
+      <a class="btn solid" id="waTop" href="https://wa.me/962796199881" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.7 11.7 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z"/></svg>
+        واتساب
+      </a>
+      <a class="btn" href="https://instagram.com/ng_sphere1" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        إنستغرام
+      </a>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" aria-label="الأقسام"><div class="wrap" id="chips"></div></nav>
+
+<main class="wrap">
+  <div class="meta"><span><b id="shown">96</b> قطعة</span><span>آخر تحديث: 10 تشرين الثاني 2026</span></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<section class="how">
+  <div class="wrap">
+    <h2>كيف تطلبين</h2>
+    <ol class="steps">
+      <li><strong>اختاري القطعة</strong><p>كل قطعة إلها كود، مثل NG-12345، مكتوب على صورتها.</p></li>
+      <li><strong>اضغطي «اطلبي على واتساب»</strong><p>بتنفتح رسالة جاهزة فيها اسم القطعة وكودها. ابعتيها مع المقاس واللون.</p></li>
+      <li><strong>منأكد معك ومنوصّلك</strong><p>منرد عليك بالسعر النهائي ومدة التوصيل، وبعد التأكيد منجهّز طلبك.</p></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">NG SPHERE · الأردن · واتساب <span class="ltr">0796 199 881</span> · إنستغرام <span class="ltr">@ng_sphere1</span></div>
+</footer>
+
+<dialog id="lb" class="lb" aria-label="تفاصيل القطعة">
+  <button class="x" id="lbx" aria-label="إغلاق">×</button>
+  <img id="lbimg" alt="" referrerpolicy="no-referrer">
+  <div class="body">
+    <div class="nm" id="lbname"></div>
+    <div class="sub"><span id="lbcode"></span><span id="lbprice"></span></div>
+    <a class="order" id="lborder" target="_blank" rel="noopener">اطلبي على واتساب</a>
+  </div>
+</dialog>
+
+<script>
+const P = [{"code": "NG-65526", "name": "فستان سهرة بقصّة حورية بدون أكتاف", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H5ba4359139cc4fedacf5f671032c9134e/High-Quality-Embroidered-Strapless-Mermaid-Gown-Sexy.jpg", "jod": null}, {"code": "NG-08969", "name": "طقم بقصّة حورية", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H93d1839cc25b4dae87929adf32c424e4d/Bettergirl-2026-Autumn-Winter-New-Vietnamese-Niche.jpg", "jod": null}, {"code": "NG-00201", "name": "فستان سهرة بالخرز اللامع شيفون", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hf3838daf770d4cdda317e66860902f1aH/High-quality-Evening-Gown-with-Rhinestone-Embellishments.jpg", "jod": null}, {"code": "NG-03678", "name": "فستان سهرة رقبة هولتر دانتيل", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H4c7644d8ffe841e5abda914624388dbdg/High-Quality-Halter-Neck-Tassels-Gown-Slim.jpg", "jod": null}, {"code": "NG-20131", "name": "فستان بالترتر", "cat": "dresses", "color": "أحمر", "img": "https://s.alicdn.com/@sc04/kf/H2b551fcab2fb410da3b8d303b3883ddff/Bettergirl-2026-New-Red-Sequin-Suspender-High.jpg", "jod": null}, {"code": "NG-35645", "name": "جاكيت جينز", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hb54b9ac65bb74aaf82e6c5a2e8b42ad7i/Bettergirl-Cardigan-Denim-Trench-Coat-for-Women.jpg", "jod": null}, {"code": "NG-80401", "name": "فستان بالخرز اللامع بالشراشيب", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H9202b7811622466e9f8a94e1c4dff9eas/High-quality-Niche-design-Vietnamese-Mini-Dress.jpg", "jod": null}, {"code": "NG-32832", "name": "فستان", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H22ddfc01def546a5a544d24178cae812M/New-French-Style-Crew-Neck-Color-Block.jpg", "jod": null}, {"code": "NG-13558", "name": "فستان سهرة بالترتر تريكو", "cat": "evening", "color": "أحمر", "img": "https://s.alicdn.com/@sc04/kf/He6ecc1fcb6584666a7246eba395f394ci/Bettergirl-High-Quality-Fashion-2026-Sequin-Long.jpg", "jod": null}, {"code": "NG-36229", "name": "فستان سهرة شيفون بليسيه", "cat": "evening", "color": "زهري", "img": "https://s.alicdn.com/@sc04/kf/H4b7a92d288cb49df834330d48fea367b9/Bettergirl-High-quality-2026-New-Fashion-Party.jpg", "jod": null}, {"code": "NG-27880", "name": "طقم دانتيل", "cat": "sets", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/H7159d347bea04524800f3f45e1b7a266N/Autumn-Winter-High-Quality-Niche-Vietnamese-Style.jpg", "jod": null}, {"code": "NG-52014", "name": "جاكيت منقّط", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Ha23513a924444805938883eeda55878co/Women-Autumn-Winter-Polka-Dot-Patchwork-Collared.jpg", "jod": null}, {"code": "NG-82575", "name": "جاكيت جلد", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hd1273560f58b44f3a1c3424ad644eb95m/Autumn-Winter-Women-Vintage-PU-Leather-Short.jpg", "jod": null}, {"code": "NG-07184", "name": "فستان رقبة هولتر بالورود", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H7e0464c5a9db411d9904a8dc835109c2r/New-Spring-Arrivals-Women-Dresses-French-Style.jpg", "jod": null}, {"code": "NG-66479", "name": "فستان سهرة بقصّة حورية رقبة هولتر", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/A0e3c7e68c1d74d28aeee840e2ff28afdb/New-Arrival-Women-Formal-Dress-Halter-neck.jpg", "jod": null}, {"code": "NG-02714", "name": "فستان بقصّة حورية أوف شولدر", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/A6e400a2816e1490fbafa33155a33af5fL/Autumn-Winter-Off-Shoulder-Mermaid-Maxi-Dress.jpg", "jod": null}, {"code": "NG-68715", "name": "طقم بدون أكتاف دانتيل", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/A7630552c35de41e5b4c263a453d493317/Autumn-High-quality-Niche-Vietnamese-Lace-Tube.jpg", "jod": null}, {"code": "NG-61665", "name": "فستان سهرة دانتيل بالخرز اللامع", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/A31cf1fe981d7462282d01b2bd4f4ddf8Y/New-Niche-Vietnamese-Style-Dress-Intricately-Beaded.jpg", "jod": null}, {"code": "NG-14759", "name": "بليزر", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H36ca3e12d7b54ab99872a0edea0c453bX/Bettergirl-2026-new-arrivals-Women-s-lapel.jpg", "jod": null}, {"code": "NG-52299", "name": "فستان بليزر", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H444c7186fae640a7a17ed3e856a6a08ag/Bettergirl-2027-New-Arrivals-regular-Fitted-Spliced.jpg", "jod": null}, {"code": "NG-59814", "name": "طقم بليزر تول", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H424b43a6343440ae8ce802a110456c64t/Bettergirl-2027-new-arrivals-Simple-Design-Blazer.jpg", "jod": null}, {"code": "NG-51786", "name": "فستان بليزر بكاب", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H12c1c929a0e64b80b0db80a352f4d75fQ/Bettergirl-2027-New-Arrivals-Niche-Design-Lapel.jpg", "jod": null}, {"code": "NG-54070", "name": "فستان بكاب", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H2600cbc14d2249f489f54fb994ce032ew/Bettergirl-2027-New-Arrivals-Niche-Designer-Round.jpg", "jod": null}, {"code": "NG-76647", "name": "فستان تول ماكسي", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hde49c4919d3040f4bd38f8905afcf107c/Bettergirl-2027-New-Arrivals-Vietnamese-Indie-Designer.jpg", "jod": null}, {"code": "NG-92176", "name": "فستان بالخرز اللامع بالورود", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H9f89aadb421844a0b76b7b4113cb297dG/Women-New-Arrivals-Slim-Fit-Plaid-Diamond.jpg", "jod": null}, {"code": "NG-41066", "name": "فستان سهرة أوف شولدر", "cat": "evening", "color": "أبيض", "img": "https://s.alicdn.com/@sc04/kf/H99cd84b6d9244fb69a8f8aa2d8b33fdf2/New-Arrival-Women-White-Asymmetric-One-Shoulder.jpg", "jod": null}, {"code": "NG-26304", "name": "فستان سهرة أوف شولدر", "cat": "evening", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/H58f226ac85a7463eaa3c4a5dad11b49aX/Women-Sophisticated-Solid-Color-Off-Shoulder-Dress.jpg", "jod": null}, {"code": "NG-20325", "name": "فستان بقصّة حورية بالخرز اللامع", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hc2393dc7142e4a3d9252d36dc3fb4bbbX/Bettergirl-High-quality-New-Niche-SP-Female.jpg", "jod": null}, {"code": "NG-91472", "name": "فستان سهرة", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H47881b3c8d7949ddabecacff1eed94b2J/Elegant-Dresses-Yarn-Luxury-Noble-Retro-Natural.jpg", "jod": null}, {"code": "NG-17855", "name": "فستان بالترتر مطرّز", "cat": "dresses", "color": "زهري", "img": "https://s.alicdn.com/@sc04/kf/H270f679c506b465693c0249475ce5e43n/Bettergirl-New-Arrivals-Ramadan-2026-Pink-Sequin.jpg", "jod": null}, {"code": "NG-60488", "name": "فستان أوف شولدر بالريش", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hc561b9046e0b4bf586a6859890a5fb50N/Autumn-Winter-Off-Shoulder-3D-Floral-Backless.jpg", "jod": null}, {"code": "NG-42926", "name": "فستان سهرة أوف شولدر بالورود", "cat": "evening", "color": "أصفر", "img": "https://s.alicdn.com/@sc04/kf/Hb829329e69cc4d019e03b5443ecfbf3bT/Autumn-Yellow-Off-Shoulder-Pleated-3D-Floral.jpg", "jod": null}, {"code": "NG-40225", "name": "طقم ضيّق", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hcae0566ed6444e1c94330bdf64dca5b0m/New-Arrival-Premium-French-Foil-Stamped-Bandage.jpg", "jod": null}, {"code": "NG-31022", "name": "فستان تول ضيّق", "cat": "dresses", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/H2118fa48728a464ba364c948fa664811h/New-Arrival-French-Style-Embellished-Tulle-Dress.jpg", "jod": null}, {"code": "NG-78186", "name": "فستان تريكو ميني", "cat": "dresses", "color": "أبيض", "img": "https://s.alicdn.com/@sc04/kf/Ha6fe4ce5f3df4665ac3722274e5bcc31W/New-Arrival-Women-Knitted-Dress-Slim-fit.jpg", "jod": null}, {"code": "NG-42711", "name": "فستان سهرة دانتيل بفيونكة", "cat": "evening", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/H2b9e1bae4a1f40deb39c24352ec41741s/New-Arrival-Women-Black-Lace-Dress-Spaghetti.jpg", "jod": null}, {"code": "NG-89860", "name": "فستان رقبة هولتر", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H45b1c23cb51744c6a94de65d7bd5adf4C/New-Arrival-Sexy-French-Style-Deep-V.jpg", "jod": null}, {"code": "NG-14089", "name": "فستان سهرة بالخرز اللامع ماكسي", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H3fa0b9515c994425881210950f4b4d5fe/New-Women-Elegant-and-Sophisticated-Evening-Gown.jpg", "jod": null}, {"code": "NG-15206", "name": "فستان سهرة بالترتر تول", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hd44c0cd082114dd1a2a2039f28cbb21da/New-Arrivals-Elegant-and-Sophisticated-Evening-Gowns.jpg", "jod": null}, {"code": "NG-59473", "name": "طقم بالشراشيب", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H5f79766fb4c1426091b5560d6074c0e7j/Autumn-Winter-Luxurious-Tassel-Design-Two-Piece.jpg", "jod": null}, {"code": "NG-52470", "name": "فستان بالورود", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H411c5ee315754eaa82232a5ecaff9cc7q/Women-Autumn-Winter-Floral-Cut-Out-Dress.jpg", "jod": null}, {"code": "NG-79304", "name": "طقم تويد", "cat": "sets", "color": "مشمشي", "img": "https://s.alicdn.com/@sc04/kf/H91cb26827e8c44598f42c23fd307765bG/New-Autumn-Winter-Elegant-Chunky-Tweed-Set.jpg", "jod": null}, {"code": "NG-79313", "name": "فستان بأكمام منفوخة", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Heb325690a8e54636931151d6e20d63d1U/High-quality-Long-sleeve-V-neck-Lantern.jpg", "jod": null}, {"code": "NG-42755", "name": "فستان بالشراشيب تريكو", "cat": "dresses", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/He0a6cd4036044067bf577c4f607efa43d/Spring-Summer-Elegant-Women-Black-Sleeveless-A.jpg", "jod": null}, {"code": "NG-53781", "name": "فستان تريكو", "cat": "dresses", "color": "بني", "img": "https://s.alicdn.com/@sc04/kf/Hf330ca5ebea14284a4e6c8ef49569e4cY/Women-Elegant-Ladylike-Brown-Knit-Dress-Polo.jpg", "jod": null}, {"code": "NG-24020", "name": "فستان تريكو بليسيه", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hd61bf3e28a1f4e489e049eaace8a3360t/New-Autumn-Winter-Women-Dress-French-Elegant.jpg", "jod": null}, {"code": "NG-32287", "name": "فستان بالخرز اللامع تريكو", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H0699bab014c34b36932d28862f32c882F/Autumn-Fashion-New-Arrivals-Women-Knitted-Dresses.jpg", "jod": null}, {"code": "NG-04914", "name": "فستان تريكو مقلّم", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hb2814e30d11643bba3bbd8dfe9800427O/Women-Autumn-Fashion-Striped-Knitted-Dress-Slim.jpg", "jod": null}, {"code": "NG-74105", "name": "فستان مطرّز بالورود", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hbb9ff87c52914dbfbf196b8f5607a7b8E/Bettergirl-2026-New-Arrivals-Embroidered-Flower-Shake.jpg", "jod": null}, {"code": "NG-60902", "name": "كنزة تريكو", "cat": "knit", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hdcffe026afd2434498b1723493920a27r/New-Autumn-Women-Knitwear-Long-Sleeve-Cable.jpg", "jod": null}, {"code": "NG-45841", "name": "طقم دانتيل تريكو", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H7f0dacec3e8849b7be5ca82bc606e507p/Autumn-Winter-Elegant-Unique-Women-Apparel-Dress.jpg", "jod": null}, {"code": "NG-58023", "name": "طقم تريكو", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H4e83c2e097d740958e5df3c3e605d5ac8/New-Autumn-Winter-Fashion-Set-Two-piece.jpg", "jod": null}, {"code": "NG-73974", "name": "جاكيت دانتيل بفيونكة", "cat": "jackets", "color": "أبيض", "img": "https://s.alicdn.com/@sc04/kf/H28a68d16c87b4ddda74a6d5c749a8dd7U/High-Quality-Women-Autumn-Winter-Round-Neck.jpg", "jod": null}, {"code": "NG-58258", "name": "فستان دانتيل بفيونكة", "cat": "dresses", "color": "أبيض", "img": "https://s.alicdn.com/@sc04/kf/H25d65a70eff447ec81572abeb451bec7K/Autumn-Winter-High-quality-Women-Short-sleeved.jpg", "jod": null}, {"code": "NG-59802", "name": "جاكيت شتوي بالخرز اللامع", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hb780597faf9248cd9529ac06b086e4a7t/Bettergirl-2026-Winter-New-Heavy-Industry-Colored.jpg", "jod": null}, {"code": "NG-25939", "name": "فستان دانتيل بالورود", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H28a42adb89484e5292d37afaa2b4488bk/Bettergirl-2026-New-High-Quality-Vietnamese-Design.jpg", "jod": null}, {"code": "NG-33303", "name": "فستان سهرة بالخرز اللامع", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hac5e770c9250442da5ed93d38a59ebbaW/2026-High-Quality-Summer-Women-s-Luxury.jpg", "jod": null}, {"code": "NG-64145", "name": "فستان سهرة ساتان بأكمام منفوخة", "cat": "evening", "color": "أخضر", "img": "https://s.alicdn.com/@sc04/kf/H3015e0b3e5bd4db38a0dfdcb7c54e9c34/Bettergirl-New-High-quality-2026-Fashion-Satin.jpg", "jod": null}, {"code": "NG-29245", "name": "فستان سهرة بأكمام منفوخة ميني", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hcf769e42831a4ad5ae7f906b9f77563fo/Women-New-Autumn-Minimalist-Dress-Color-Block.jpg", "jod": null}, {"code": "NG-08638", "name": "فستان دانتيل ماكسي", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H436a480d9bce4d5fac148d5fd2bcafee6/Spring-Women-Vintage-Style-Vacation-Maxi-Dress.jpg", "jod": null}, {"code": "NG-51917", "name": "فستان ساتان ماكسي", "cat": "dresses", "color": "خمري", "img": "https://s.alicdn.com/@sc04/kf/Hdc24d62302d64913b00268823cdb0698P/Autumn-Winter-Women-Vintage-Style-Burgundy-Ruffles.jpg", "jod": null}, {"code": "NG-80186", "name": "فستان بليسيه ماكسي", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H64438591203f46088552225ab09e6c37Y/Autumn-New-Arrival-Women-Pleated-Texture-Cami.jpg", "jod": null}, {"code": "NG-91459", "name": "فستان سهرة بقصّة حورية ساتان", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H639c9286582d4b7ba8f5ecc06c2680da8/Autumn-Winter-High-Quality-Women-Satin-Mermaid.jpg", "jod": null}, {"code": "NG-67941", "name": "جاكيت بالخرز اللامع بالورود", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H1087ce7922524eb7abf1e547e7132c77t/New-Innovation-Autumn-Winter-Women-s-Retro.jpg", "jod": null}, {"code": "NG-38913", "name": "بنطلون جينز بنقشة نمر", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hbc538cadcb6e46ccb379230453795df8E/Bettergirl-2026-new-arrivals-American-Vintage-Leopard.jpg", "jod": null}, {"code": "NG-33345", "name": "جاكيت بالترتر مطرّز", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H51fc42769c4f471bb8e60cd42884e5a6p/Bettergirl-2026-new-arrivals-Sequin-Embroidered-Long.jpg", "jod": null}, {"code": "NG-71560", "name": "جاكيت بنقشة نمر", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H76739ed4428a4227868ce634f59bf1fc5/Bettergirl-2026-new-arrivals-Leopard-Color-Block.jpg", "jod": null}, {"code": "NG-51171", "name": "معطف فرو", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hc00f1b84dc9244cb909282915e69b187T/Bettergirl-2026-new-arrivals-Herringbone-Eco-Fur.jpg", "jod": null}, {"code": "NG-31919", "name": "جاكيت جلد", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H4e355b07adf94416b2ec3ab7a0ad2e99q/Bettergirl-2026-new-arrivals-High-end-stand.jpg", "jod": null}, {"code": "NG-98411", "name": "جاكيت جينز", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H3501c24dbd18488185ee492954af332b1/Bettergirl-2026-new-arrivals-Vintage-rivet-spliced.jpg", "jod": null}, {"code": "NG-93407", "name": "فستان تول ماكسي", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H2ad24c1e79c7455ca4b0424613c01e5cD/Bettergirl-2027-New-Arrivals-Stand-collar-zipper.jpg", "jod": null}, {"code": "NG-31876", "name": "جاكيت جلد بكاب", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hb35859a613564cfeb44ee470d447c26em/Bettergirl-2026-new-arrivals-Vintage-stand-collar.jpg", "jod": null}, {"code": "NG-24611", "name": "فستان أوف شولدر دانتيل", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H11e2431236c445cdb08d226bbc46c7fb0/Bettergirl-New-Arrivals-2026-Vietnamese-niche-design.jpg", "jod": null}, {"code": "NG-74048", "name": "فستان سهرة بالشراشيب ماكسي", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Aa461b6ff024c4249ab22e162e4779741C/Autumn-Elegant-Women-Long-Gown-Wavy-Neckline.jpg", "jod": null}, {"code": "NG-88901", "name": "فستان سهرة رقبة هولتر بالورود", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Ha0408e2d721f4cbb8ba354999588d872Z/New-Arrival-Sophisticated-Sexy-Dress-Short-Halter.jpg", "jod": null}, {"code": "NG-47530", "name": "طقم بالريش شيفون", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H0a8ffec16c684d2a87297352e2e73eb4l/High-Quality-Women-Two-Piece-Set-Slim.jpg", "jod": null}, {"code": "NG-85179", "name": "فستان بالخرز اللامع بالشراشيب", "cat": "dresses", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/Ha9de86446a414c378eb61094df14739cY/New-Design-Vietnamese-Style-Black-Long-Sleeve.jpg", "jod": null}, {"code": "NG-01637", "name": "فستان دانتيل", "cat": "dresses", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/Hecd8c4fce0144e6a902cbb37f7543fc0u/New-Arrival-Niche-Vietnamese-Design-Hepburn-Style.jpg", "jod": null}, {"code": "NG-66819", "name": "طقم تريكو بليسيه", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hf790e40c04ae4c81bb8e39597e20b533u/Womens-Formal-Wool-Knit-Two-Piece-Skirt.jpg", "jod": null}, {"code": "NG-21707", "name": "فستان سهرة ساتان تول", "cat": "evening", "color": "أبيض", "img": "https://s.alicdn.com/@sc04/kf/Hcebb2276cc1e483fbc94993c66e0d8b30/White-Satin-Mesh-A-Line-Spaghetti-Strap.png", "jod": null}, {"code": "NG-72792", "name": "فستان سهرة بدون أكتاف بالخرز اللامع", "cat": "evening", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/H2520e8b4bc8f4ec8a22aada8f66100f7n/2024-Fashion-Hot-Sale-Dinner-Party-Diamond.jpg", "jod": null}, {"code": "NG-05908", "name": "جاكيت بالخرز اللامع جلد", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H0d0723d5f2444bfeb1e29abcaa6959d3p/New-Arrivals-Autumn-Winter-Women-Collection-Heavily.jpg", "jod": null}, {"code": "NG-52983", "name": "معطف صوف", "cat": "jackets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H7838b712a87646f8b050f8215863cc7fa/Women-Autumn-Winter-Fashion-New-Arrival-Belted.jpg", "jod": null}, {"code": "NG-51446", "name": "فستان تريكو مقلّم", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H54a44d51aa5447dba265ead69c3e03d4L/New-Women-Fashion-Dress-Long-Sleeve-Round.jpg", "jod": null}, {"code": "NG-56983", "name": "فستان سهرة أوف شولدر بالترتر", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H944afac1dc374313bbd43eff2eaf641b5/New-Autumn-Collection-Off-Shoulder-Dress-3D.jpg", "jod": null}, {"code": "NG-74515", "name": "طقم بالخرز اللامع بفيونكة", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H407b06cc730744fc967057f89f0656ffi/2026-New-Collection-Women-Slim-Fit-Blazer.jpg", "jod": null}, {"code": "NG-27097", "name": "فستان سهرة أوف شولدر بدون أكتاف", "cat": "evening", "color": "مشمشي", "img": "https://s.alicdn.com/@sc04/kf/Hac300455d5b9469f8240d13135126cb61/New-Arrival-Apricot-Strapless-Bodycon-Dress-Glossy.jpg", "jod": null}, {"code": "NG-17482", "name": "طقم بليسيه بكاب", "cat": "sets", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hfb0de21c0f124bc0812c1cca25b2b14cM/New-Arrival-Women-Two-Piece-Dress-Set.jpg", "jod": null}, {"code": "NG-35258", "name": "فستان دانتيل ميني", "cat": "dresses", "color": "أسود", "img": "https://s.alicdn.com/@sc04/kf/Hfb62415586d74064b957bcb5a816d11eC/Autumn-Women-Black-Short-Dress-Short-Sleeved.jpg", "jod": null}, {"code": "NG-31881", "name": "فستان سهرة أوف شولدر ماكسي", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Heb44a884997447c0bae4687d2d03018f6/Women-Autumn-New-Arrivals-Off-Shoulder-Slim.jpg", "jod": null}, {"code": "NG-41397", "name": "فستان سهرة ضيّق", "cat": "evening", "color": "زهري", "img": "https://s.alicdn.com/@sc04/kf/H8e18e78098af4973a5b1e942d17ac780Q/New-Arrivals-3D-Effect-Dress-Sexy-Low.jpg", "jod": null}, {"code": "NG-30012", "name": "فستان سهرة بدون أكتاف ميني", "cat": "evening", "color": "نعناعي", "img": "https://s.alicdn.com/@sc04/kf/H5ae7e241c05c4baf842c59be596dc74cN/Summer-New-Arrival-Sophisticated-Party-Mini-Dress.jpg", "jod": null}, {"code": "NG-93207", "name": "فستان تول ماكسي", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hab3b2f177fd249faa0834b654e83b126D/New-Arrivals-Sheer-Mesh-Cut-outs-and.jpg", "jod": null}, {"code": "NG-04526", "name": "فستان بقصّة حورية أوف شولدر", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/Hfb48f31162134909a1797b746fe68861r/New-Arrival-Vintage-Style-Off-Shoulder-Sequin.jpg", "jod": null}, {"code": "NG-82627", "name": "فستان بقصّة حورية دانتيل", "cat": "dresses", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H3d34720fefe8455eb148a8614fe929eey/New-Arrivals-Corset-Style-3D-Floral-Lace.jpg", "jod": null}, {"code": "NG-04325", "name": "فستان سهرة بقصّة حورية رقبة هولتر", "cat": "evening", "color": "", "img": "https://s.alicdn.com/@sc04/kf/H5f3eef57719c46a490b45315d68db3f7C/New-Autumn-Winter-Mesh-and-Lace-Halter.jpg", "jod": null}];
+const WA = "962796199881";
+const CATS = [["all","الكل"],["evening","فساتين سهرة"],["dresses","فساتين"],["sets","أطقم"],["jackets","جاكيتات وبليزرات"],["knit","تريكو"]];
+const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const label = p => p.name + (p.color ? " – " + p.color : "");
+const priceHtml = p => p.jod ? `<span class="price">${p.jod} د.أ</span>` : `<span class="price ask">السعر على واتساب</span>`;
+const waLink = p => "https://wa.me/" + WA + "?text=" + encodeURIComponent(`مرحبا NG SPHERE، حابة أطلب:\n${label(p)}\nكود القطعة: ${p.code}\nالمقاس: \nاللون: `);
+const thumb = p => p.img + "_480x480.jpg";
+
+document.getElementById("waTop").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("مرحبا NG SPHERE، عندي استفسار");
+
+let cur = "all";
+try { const h = location.hash.slice(1); if (CATS.some(c => c[0] === h)) cur = h; } catch(e) {}
+
+function chips(){
+  const el = document.getElementById("chips");
+  el.innerHTML = CATS.map(([k,n]) => {
+    const c = k === "all" ? P.length : P.filter(p => p.cat === k).length;
+    return c ? `<button class="chip" data-k="${k}" aria-pressed="${k===cur}">${n}<small>${c}</small></button>` : "";
+  }).join("");
+  el.onclick = e => { const b = e.target.closest(".chip"); if (!b) return; cur = b.dataset.k; history.replaceState(null,"",cur==="all"?location.pathname:"#"+cur); chips(); render(); };
+}
+function render(){
+  const list = cur === "all" ? P : P.filter(p => p.cat === cur);
+  document.getElementById("shown").textContent = list.length;
+  document.getElementById("grid").innerHTML = list.map((p,i) => `
+    <article class="item">
+      <button class="ph" data-i="${P.indexOf(p)}" aria-label="عرض ${esc(label(p))}">
+        <img src="${thumb(p)}" alt="${esc(label(p))}" loading="${i<8?"eager":"lazy"}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${p.img}'">
+        <span class="code">${p.code}</span>
+      </button>
+      <h3 class="nm">${esc(label(p))}</h3>
+      <div class="sub">${priceHtml(p)}</div>
+      <a class="order" href="${waLink(p)}" target="_blank" rel="noopener">${waIcon}اطلبي على واتساب</a>
+    </article>`).join("");
+}
+const lb = document.getElementById("lb");
+document.getElementById("grid").addEventListener("click", e => {
+  const b = e.target.closest(".ph"); if (!b) return;
+  const p = P[+b.dataset.i];
+  document.getElementById("lbimg").src = p.img;
+  document.getElementById("lbimg").alt = label(p);
+  document.getElementById("lbname").textContent = label(p);
+  document.getElementById("lbcode").textContent = p.code;
+  document.getElementById("lbprice").innerHTML = priceHtml(p);
+  document.getElementById("lborder").href = waLink(p);
+  lb.showModal();
+});
+document.getElementById("lbx").onclick = () => lb.close();
+lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
+chips(); render();
+</script>
+</body>
+</html>
