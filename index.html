@@ -573,7 +573,7 @@ document.getElementById("clearCart").onclick = () => {
   else { b.dataset.armed = "1"; b.textContent = "اضغط مرة ثانية للتأكيد"; setTimeout(() => { b.textContent = "إفراغ الطلب"; delete b.dataset.armed; }, 4000); }
 };
 
-fetch("products.json?v=1794319376").then(r => r.json()).then(d => {
+fetch("products.json?v=1794322195").then(r => r.json()).then(d => {
   const cutoff = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
   P = d.items.map((a, i) => ({i, code: a[0], name: a[1], cat: a[2], color: a[3] || "", jod: a[4], imgs: (a[5] || []).map(h => IMG + h),
     pop: +a[6] || 0, colors: (a[7] || []).map(c => ({hex: c[0], name: c[1], img: c[2] || ""})), added: a[8] || "", rank: a[9] ?? i})).filter(p => p.imgs.length);
