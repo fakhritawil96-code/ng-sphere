@@ -195,10 +195,11 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .showTab[aria-selected="true"] i{animation:showbar var(--dur,7s) linear forwards}
 @keyframes showbar{to{width:100%}}
 .showStage{position:relative;direction:ltr;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.showTrack{display:flex;gap:14px;width:max-content;animation:showmove var(--speed,60s) linear infinite;transition:opacity .45s ease}
+.showStage{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;cursor:grab;touch-action:pan-x pan-y}
+.showStage::-webkit-scrollbar{display:none}
+.showStage.drag{cursor:grabbing}
+.showTrack{display:flex;gap:14px;width:max-content;transition:opacity .45s ease}
 .showTrack.fade{opacity:0}
-.show:hover .showTrack,.showTrack:focus-within{animation-play-state:paused}
-@keyframes showmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .sc{flex:0 0 auto;width:clamp(150px,19vw,250px);border:0;padding:0;background:none;text-align:start;cursor:pointer;color:inherit;direction:rtl}
 .sc .ph{display:block;aspect-ratio:3/4;overflow:hidden;border-radius:4px;background:var(--rose-soft)}
 .sc img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transition:transform .6s ease}
@@ -207,7 +208,7 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .sc .n{display:block;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc .b{position:absolute;margin:8px;padding:2px 8px;border-radius:999px;font-size:11px;background:var(--ivory);color:var(--ink)}
 .sc .ph{position:relative}
-@media (prefers-reduced-motion:reduce){.showTrack{animation:none}.showStage{overflow-x:auto}}
+
 .desc{font-size:14.5px;line-height:1.85;color:var(--ink);margin:10px 0 4px;opacity:.88}
 .termsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:880px;margin:22px auto 0}
 .term{border:1px solid var(--line);background:var(--paper);padding:14px 16px;border-radius:2px;display:flex;flex-direction:column;gap:2px}
@@ -468,23 +469,43 @@ function showcase(){
   ].filter(s => s[2].length >= 6);
   if (!S.length) return;
   const sec = document.getElementById("show"), tabs = document.getElementById("showTabs"), track = document.getElementById("showTrack");
-  const DUR = 7000; let i = 0, timer = null;
+  const stage = document.getElementById("showStage");
+  const DUR = 7000, SPEED = 38; let i = 0, timer = null, pos = 0, last = 0, hold = 0, touched = 0;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const busy = ms => { hold = performance.now() + ms; touched = performance.now(); };
+  function tick(ts){
+    const dt = last ? Math.min(64, ts - last) / 1000 : 0; last = ts;
+    const half = track.scrollWidth / 2;
+    if (ts < hold || document.hidden || reduce || stage.matches(":hover") && !matchMedia("(hover: none)").matches) pos = stage.scrollLeft;
+    else { pos += SPEED * dt; if (half && pos >= half) pos -= half; stage.scrollLeft = pos; }
+    if (half && stage.scrollLeft >= half) { stage.scrollLeft -= half; pos = stage.scrollLeft; }
+    if (half && stage.scrollLeft <= 0 && ts < hold) { stage.scrollLeft += half; pos = stage.scrollLeft; }
+    requestAnimationFrame(tick);
+  }
+  ["touchstart", "touchmove", "wheel"].forEach(ev => stage.addEventListener(ev, () => busy(2500), {passive: true}));
+  stage.addEventListener("touchend", () => busy(1800), {passive: true});
+  let drag = null, moved = false;
+  stage.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; drag = {x: e.clientX, s: stage.scrollLeft}; moved = false; busy(3000); });
+  addEventListener("pointermove", e => { if (!drag) return; const d = e.clientX - drag.x; if (Math.abs(d) > 5) { moved = true; stage.classList.add("drag"); } stage.scrollLeft = drag.s - d; busy(3000); });
+  addEventListener("pointerup", () => { if (drag) { drag = null; stage.classList.remove("drag"); busy(1500); } });
+  stage.addEventListener("click", e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  stage.addEventListener("dragstart", e => e.preventDefault());
   tabs.innerHTML = S.map((s, k) => `<button class="showTab" role="tab" type="button" data-k="${k}" aria-selected="false">${s[1]}<i></i></button>`).join("");
   sec.style.setProperty("--dur", DUR / 1000 + "s");
   const card = p => `<button class="sc" type="button" data-i="${p.i}"><span class="ph"><img src="${p.imgs[0]}_480x480.jpg" alt="${esc(label(p))}" referrerpolicy="no-referrer">${p.isNew ? `<span class="b">جديد</span>` : ""}</span><span class="c">${p.code}</span><span class="n">${esc(label(p))}</span></button>`;
   function render(k, animate){
     i = k; const s = S[k];
     tabs.querySelectorAll(".showTab").forEach((b, j) => { b.setAttribute("aria-selected", j === k); const bar = b.querySelector("i"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
-    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; track.style.setProperty("--speed", s[2].length * 4 + "s"); track.classList.remove("fade"); };
+    const put = () => { const h = s[2].map(card).join(""); track.innerHTML = h + h; stage.scrollLeft = 0; pos = 0; track.classList.remove("fade"); };
     if (animate) { track.classList.add("fade"); setTimeout(put, 450); } else put();
   }
-  function play(){ clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !sec.matches(":hover")) render((i + 1) % S.length, true); }, DUR); }
+  function play(){ clearInterval(timer); timer = setInterval(() => { if (!document.hidden && !sec.matches(":hover") && performance.now() - touched > 12000) render((i + 1) % S.length, true); }, DUR); }
   tabs.onclick = e => { const b = e.target.closest(".showTab"); if (b) { render(+b.dataset.k, true); play(); } };
   track.onclick = e => { const b = e.target.closest(".sc"); if (b) openItem(P[+b.dataset.i]); };
   document.getElementById("showAll").onclick = () => { const k = S[i][3]; const c = document.querySelector(`.chip[data-k="${k}"]`); if (c) c.click();
     if (S[i][0] === "pop") { document.getElementById("sort").value = "pop"; filter(); }
     document.getElementById("chips").scrollIntoView({behavior: "smooth"}); };
-  sec.hidden = false; render(0, false); play();
+  sec.hidden = false; render(0, false); play(); requestAnimationFrame(tick);
 }
 document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
 try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
