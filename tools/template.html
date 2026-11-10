@@ -185,6 +185,13 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .tblWrap th,.tblWrap td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
 .tblWrap th{color:var(--muted);font-weight:500}
 .tblWrap td:first-child{font-weight:600}
+.reels{padding:8px 0 22px}
+.reelsHead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.reelsHead h2{font-size:18px;font-weight:600;margin:0}
+.reelRow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}
+.reel{margin:0;flex:0 0 auto;width:min(44vw,240px);scroll-snap-align:start}
+.reel video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:6px;background:var(--rose-soft);cursor:pointer}
+.reel figcaption{font-size:13px;color:var(--muted);margin-top:6px}
 .termsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;max-width:880px;margin:22px auto 0}
 .term{border:1px solid var(--line);background:var(--paper);padding:14px 16px;border-radius:2px;display:flex;flex-direction:column;gap:2px}
 .term b{font-size:16px;font-weight:600}
@@ -212,6 +219,16 @@ body.hascart{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 </header>
+
+<section class="reels" aria-label="ريلز">
+  <div class="wrap">
+    <div class="reelsHead"><h2>ريلز هالأسبوع</h2><button class="linkbtn" type="button" id="reelsNew">تصفّح كل اللي وصل حديثًا</button></div>
+    <div class="reelRow">
+      <figure class="reel"><video src="reels/new-dresses.mp4?v=__VER__" poster="reels/new-dresses.jpg?v=__VER__" muted loop playsinline preload="none" aria-label="ريل: وصل حديثًا، فساتين ومناسبات"></video><figcaption>وصل حديثًا · فساتين ومناسبات</figcaption></figure>
+      <figure class="reel"><video src="reels/new-sets.mp4?v=__VER__" poster="reels/new-sets.jpg?v=__VER__" muted loop playsinline preload="none" aria-label="ريل: وصل حديثًا، أطقم وجاكيتات وكاجوال"></video><figcaption>وصل حديثًا · أطقم وجاكيتات</figcaption></figure>
+    </div>
+  </div>
+</section>
 
 <nav class="rail" aria-label="الأقسام"><div class="wrap" id="chips"></div></nav>
 
@@ -398,6 +415,15 @@ document.getElementById("moreBtn").onclick = more;
 if ("IntersectionObserver" in window) {
   new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && shownN < list.length) more(); }, {rootMargin: "800px"}).observe(document.getElementById("moreBtn"));
 }
+(() => {
+  const vids = [...document.querySelectorAll(".reel video")];
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause(); }), {threshold: .6});
+    vids.forEach(v => io.observe(v));
+  }
+  vids.forEach(v => v.addEventListener("click", () => { v.paused ? v.play().catch(() => {}) : v.pause(); }));
+  document.getElementById("reelsNew").onclick = () => { const c = document.querySelector('.chip[data-k="new"]'); if (c) { c.click(); document.getElementById("chips").scrollIntoView({behavior: "smooth"}); } };
+})();
 document.getElementById("sort").addEventListener("change", () => { try { localStorage.setItem("ng_sort", document.getElementById("sort").value); } catch (e) {} filter(); });
 try { const s = localStorage.getItem("ng_sort"); if (s) document.getElementById("sort").value = s; } catch (e) {}
 let qt;
